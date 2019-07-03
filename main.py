@@ -15,11 +15,11 @@ model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model.fit(x_train, y_train, epochs=5)
+model.fit(x_train, y_train, epochs=1)
 model.evaluate(x_test, y_test)
 
 #%%
-from __future__ import absolute_import, division, print_function
+#from __future__ import absolute_import, division, print_function
 
 import collections
 

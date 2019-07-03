@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 
+from six.moves import range
 import numpy as np
 import tensorflow as tf
 import tensorflow_federated as tff
@@ -83,12 +84,14 @@ def create_compiled_keras_model():
     return model
 
 
+#%%
 def model_fn():
     keras_model = create_compiled_keras_model()
     return tff.learning.from_compiled_keras_model(keras_model, sample_batch)
 
-
+#%%
 iterative_process = tff.learning.build_federated_averaging_process(model_fn)
-
 #   todo : 더이상 진행 불가, tensorflow-federated 버전 업데이트 됬지만 pip에서 업데이트 안됨
+
+
 
