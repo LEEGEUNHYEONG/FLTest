@@ -10,16 +10,30 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ImageClassification.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="92" selection-start-line="92" selection-end-line="92" />
+            <state relative-caret-position="276">
+              <caret line="230" column="41" lean-forward="true" selection-start-line="230" selection-start-column="41" selection-end-line="230" selection-end-column="41" />
               <folding>
-                <element signature="e#5#69#0" expanded="true" />
+                <element signature="e#104#168#0" expanded="true" />
               </folding>
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/TextGeneration.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="5" column="12" selection-start-line="5" selection-start-column="12" selection-end-line="5" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://C:/Dev/Python37/Lib/__future__.py">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
     </leaf>
@@ -39,6 +53,9 @@
       <find>build_model_delta_optimizer_process</find>
       <find>softmax</find>
       <find>nn</find>
+      <find>train_on_batch</find>
+      <find>report_local_outputs</find>
+      <find>forward_pass</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -51,13 +68,15 @@
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/ImageClassification.py" />
+        <option value="$PROJECT_DIR$/TextGeneration.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="73" />
-    <option name="width" value="1255" />
-    <option name="height" value="1448" />
+    <option name="x" value="72" />
+    <option name="y" value="-9" />
+    <option name="width" value="1258" />
+    <option name="height" value="1458" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -103,6 +122,13 @@
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings>
+        <option name="useSoftWraps" value="true" />
+      </console-settings>
+    </option>
+  </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Project\FDTest\data" />
@@ -128,9 +154,6 @@
       <module name="FLTest" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="C:\ProgramData\Anaconda3\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -212,18 +235,25 @@
       <workItem from="1561702922411" duration="4971000" />
       <workItem from="1561708211838" duration="2720000" />
       <workItem from="1561953892698" duration="207000" />
-      <workItem from="1562118168023" duration="3475000" />
+      <workItem from="1562118168023" duration="3536000" />
+      <workItem from="1562126826470" duration="688000" />
+      <workItem from="1562308532781" duration="609000" />
+      <workItem from="1562332423803" duration="632000" />
+      <workItem from="1562340096061" duration="427000" />
+      <workItem from="1562340533340" duration="1039000" />
+      <workItem from="1562341583885" duration="1667000" />
+      <workItem from="1562638119940" duration="4015000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13871000" />
+    <option name="totallyTimeSpent" value="23009000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="59" y="0" width="1004" height="1158" extended-state="0" />
+    <frame x="58" y="-7" width="1006" height="1166" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14799154" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26054853" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -236,13 +266,13 @@
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32978722" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
-      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5010548" side_tool="true" weight="0.35169083" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.32978722" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="12" visible="true" weight="0.50340796" />
+      <window_info anchor="bottom" id="Python Console" order="12" sideWeight="0.49894515" visible="true" weight="0.35169083" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" weight="0.32769555" />
+      <window_info anchor="right" id="SciView" order="3" weight="0.32700422" />
       <window_info anchor="right" x="0" y="0" width="449" height="966" id="Documentation" order="4" side_tool="true" weight="0.3295513" />
       <window_info anchor="right" id="Database" order="5" />
     </layout>
@@ -263,23 +293,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/simulation/datasets/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/simulation/datasets/emnist/load_data.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="372">
-          <caret line="101" column="36" lean-forward="true" selection-start-line="101" selection-end-line="102" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="53" lean-forward="true" selection-start-line="14" selection-start-column="53" selection-end-line="14" selection-end-column="53" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/simulation/datasets/__init__.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/simulation/datasets/emnist/load_data.py" />
     <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow/python/keras/losses.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="223">
@@ -304,82 +319,91 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/keras_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="223">
-          <caret line="128" column="4" selection-start-line="128" selection-start-column="4" selection-end-line="128" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_core/python/util/deprecation_wrapper.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="103" selection-start-line="103" selection-end-line="103" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/federated_averaging.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="132" column="59" selection-start-line="132" selection-start-column="25" selection-end-line="132" selection-end-column="60" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/framework/optimizer_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="296">
-          <caret line="345" column="46" selection-start-line="345" selection-start-column="46" selection-end-line="345" selection-end-column="46" />
-          <folding>
-            <element signature="e#687#725#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/model_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="492" column="6" selection-start-line="492" selection-start-column="6" selection-end-line="492" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/core/impl/computation_wrapper.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="102" selection-start-line="102" selection-end-line="102" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/core/impl/function_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="836">
-          <caret line="584" selection-start-line="584" selection-end-line="584" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow/_api/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/keras_utils.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_core/python/util/deprecation_wrapper.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/federated_averaging.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/framework/optimizer_utils.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/learning/model_utils.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/core/impl/computation_wrapper.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_federated/python/core/impl/function_utils.py" />
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow/_api/__init__.py" />
     <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-540" />
       </provider>
     </entry>
-    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_core/__init__.py">
+    <entry file="file://C:/ProgramData/Anaconda3/Lib/site-packages/tensorflow_core/__init__.py" />
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="59" column="10" selection-start-line="59" selection-start-column="10" selection-end-line="59" selection-end-column="10" />
+        <state relative-caret-position="555">
+          <caret line="37" selection-start-line="37" selection-end-line="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/python/learning/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-910">
+          <caret line="41" column="6" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/python/learning/model_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="207">
+          <caret line="167" selection-start-line="167" selection-end-line="167" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/python/learning/federated_averaging.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="109" column="4" selection-start-line="109" selection-start-column="4" selection-end-line="109" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/python/common_libs/anonymous_tuple.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="516">
+          <caret line="418" selection-start-line="418" selection-end-line="418" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/python/core/impl/reference_executor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="207">
+          <caret line="667" selection-start-line="667" selection-end-line="667" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/site-packages/tensorflow_federated/python/core/impl/function_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="417">
+          <caret line="643" column="68" lean-forward="true" selection-start-line="643" selection-start-column="68" selection-end-line="643" selection-end-column="68" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/ImageClassification.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="92" selection-start-line="92" selection-end-line="92" />
+        <state relative-caret-position="276">
+          <caret line="230" column="41" lean-forward="true" selection-start-line="230" selection-start-column="41" selection-end-line="230" selection-end-column="41" />
           <folding>
-            <element signature="e#5#69#0" expanded="true" />
+            <element signature="e#104#168#0" expanded="true" />
           </folding>
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/TextGeneration.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="12" selection-start-line="5" selection-start-column="12" selection-end-line="5" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Dev/Python37/Lib/__future__.py">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
   </component>
 </project>
