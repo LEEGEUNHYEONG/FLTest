@@ -13,10 +13,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/CustomFederated2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="632">
-              <caret line="98" selection-start-line="98" selection-end-line="98" />
+            <state relative-caret-position="-342">
+              <caret line="132" lean-forward="true" selection-start-line="132" selection-end-line="132" />
               <folding>
-                <element signature="e#90#154#0" expanded="true" />
+                <element signature="e#131#195#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -64,7 +64,7 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="73" />
-    <option name="width" value="1255" />
+    <option name="width" value="1240" />
     <option name="height" value="1448" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -73,17 +73,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="FLTest" type="b2602c69:ProjectViewProjectNode" />
-              <item name="FLTest" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
       <pane id="Scope">
         <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
           <expand>
@@ -95,6 +84,17 @@
               <item name="FLTest" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
               <item name="C:\Project\FLTest" type="442cc68d:ScopeViewTreeModel$RootNode" />
               <item name=".idea" type="9f88c78c:ScopeViewTreeModel$FileNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="FLTest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="FLTest" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -138,7 +138,26 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.TextGeneration">
+  <component name="RunManager" selected="Python.CustomFederated2">
+    <configuration name="CustomFederated2" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="FLTest" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="C:\ProgramData\Anaconda3\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CustomFederated2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="ImageClassification" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="FLTest" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -229,6 +248,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.CustomFederated2" />
         <item itemvalue="Python.TextGeneration" />
         <item itemvalue="Python.ImageClassification" />
         <item itemvalue="Python.main" />
@@ -259,18 +279,18 @@
       <workItem from="1562341583885" duration="1667000" />
       <workItem from="1562638119940" duration="6095000" />
       <workItem from="1562653050760" duration="11502000" />
-      <workItem from="1563172843363" duration="6148000" />
+      <workItem from="1563172843363" duration="6226000" />
+      <workItem from="1563249182650" duration="4090000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="42739000" />
+    <option name="totallyTimeSpent" value="46907000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="59" y="0" width="1004" height="1158" extended-state="0" />
-    <editor active="true" />
+    <frame x="59" y="0" width="992" height="1158" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19556025" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20235546" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -483,10 +503,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CustomFederated2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="632">
-          <caret line="98" selection-start-line="98" selection-end-line="98" />
+        <state relative-caret-position="-342">
+          <caret line="132" lean-forward="true" selection-start-line="132" selection-end-line="132" />
           <folding>
-            <element signature="e#90#154#0" expanded="true" />
+            <element signature="e#131#195#0" expanded="true" />
           </folding>
         </state>
       </provider>
