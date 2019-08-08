@@ -235,3 +235,7 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+mnist/data/train-labels-idx1-ubyte.gz
+mnist/data/t10k-images-idx3-ubyte.gz
+mnist/data/t10k-labels-idx1-ubyte.gz
+mnist/data/train-images-idx3-ubyte.gz
