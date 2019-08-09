@@ -10,8 +10,10 @@ print(device_lib.list_local_devices())
 
 np.random.seed(42)
 
+# %%
 mnist = keras.datasets.mnist
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
+train_images, test_images = train_images / 255.0, test_images / 255.0
 
 # %%    해당 이미지의 labels 별로 구분하여 리스트에 저장
 print("train image :", train_images.shape)
@@ -30,12 +32,12 @@ for i, v in enumerate(test_labels):
     test_index_list[v].append(i)
 
 plt.figure(figsize=(5, 5))
-'''
+
 plt.figure(figsize=(5, 5))
 image = train_images[4]
 plt.imshow(image, cmap='Greys')
 plt.show()
-'''
+
 # %%
 t_train_images = []
 t_train_labels = []
@@ -64,9 +66,6 @@ t_test_images = np.array(t_test_images)
 t_test_labels = np.array(t_test_labels)
 
 # %%
-train_images, train_labels = train_images / 255.0, train_labels / 255.0
-#train_images, train_labels = t_train_images / 255.0, t_train_labels / 255.0
-
 model = tf.keras.models.Sequential([
     tf.keras.layers.Flatten(input_shape=(28, 28)),
     tf.keras.layers.Dense(512, activation=tf.nn.relu),
@@ -74,21 +73,25 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
 
-model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.1),
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+
+model.compile(optimizer= keras.optimizers.SGD(lr=0.5),
+              #optimizer= keras.optimizers.Adam(),
+              loss= keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
 
-history = model.fit(train_images, train_labels, epochs=5)
+model.fit(train_images, train_labels, epochs=5)
 
 # %%
-predictions = model.predict(test_images, test_labels)
-p_index = np.argmax(predictions[0])
-print(p_index, test_labels[test_labels[0]])
+model.evaluate(test_images, test_labels)
 
 # %%
-result = model.evaluate(test_images, test_labels)
-model.lo
+predictions = model.predict(t_test_images)
 
+for i, p in enumerate(predictions):
+    print("predict : {}, labels : {}".format(np.argmax(predictions[i]), t_test_labels[i]))
+
+# %%
+model.evaluate(t_test_images, t_test_labels)
 # %%
 print(model.weights[0], model.weights[1], model.weights[2], model.weights[3])
 
