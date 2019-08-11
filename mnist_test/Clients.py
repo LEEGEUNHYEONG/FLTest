@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from mnist_test.Server import Server
+server = Server.instance()
 
 from tensorflow.python.client import device_lib
 
-print(device_lib.list_local_devices())
+#print(device_lib.list_local_devices())
 
 np.random.seed(42)
 
@@ -22,8 +24,15 @@ print("text image : ", test_images.shape)
 print("text label : ", test_labels.shape)
 print('\n')
 
+# %%
 train_index_list = [[], [], [], [], [], [], [], [], [], []]
 test_index_list = [[], [], [], [], [], [], [], [], [], []]
+
+for i, v in enumerate(train_labels):
+    train_index_list[v].append(i)
+
+for i, v in enumerate(train_labels):
+    train_index_list[v].append(i)
 
 for i, v in enumerate(train_labels):
     train_index_list[v].append(i)
@@ -31,12 +40,14 @@ for i, v in enumerate(train_labels):
 for i, v in enumerate(test_labels):
     test_index_list[v].append(i)
 
-plt.figure(figsize=(5, 5))
 
+
+'''
 plt.figure(figsize=(5, 5))
 image = train_images[4]
 plt.imshow(image, cmap='Greys')
 plt.show()
+'''
 
 # %%
 t_train_images = []
@@ -75,11 +86,11 @@ model = tf.keras.models.Sequential([
 
 
 model.compile(optimizer= keras.optimizers.SGD(lr=0.5),
-              #optimizer= keras.optimizers.Adam(),
               loss= keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
 
-model.fit(train_images, train_labels, epochs=5)
+# %%
+model.fit(train_images, train_labels, epochs=1)
 
 # %%
 model.evaluate(test_images, test_labels)
@@ -87,16 +98,12 @@ model.evaluate(test_images, test_labels)
 # %%
 predictions = model.predict(t_test_images)
 
-for i, p in enumerate(predictions):
-    print("predict : {}, labels : {}".format(np.argmax(predictions[i]), t_test_labels[i]))
+#%%
+w = []
+w.append(model.get_weights()[0])
+w.append(model.get_weights()[1])
+w.append(model.get_weights()[2])
+w.append(model.get_weights()[3])
 
-# %%
-model.evaluate(t_test_images, t_test_labels)
-# %%
-print(model.weights[0], model.weights[1], model.weights[2], model.weights[3])
+server.update_value(w)
 
-# %%
-from mnist_test.Server import Server
-
-Server.avg(v=model.weights)
-print("count : {}\navg : {}".format(Server.count, Server.avg()))
