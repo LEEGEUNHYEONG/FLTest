@@ -66,38 +66,6 @@ t_test_images = np.array(t_test_images)
 t_test_labels = np.array(t_test_labels)
 
 # %%
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(512, activation=tf.nn.relu),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-])
-
-model.compile(optimizer=keras.optimizers.SGD(lr=0.5),
-              loss=keras.losses.SparseCategoricalCrossentropy(),
-              metrics=['accuracy'])
-
-# %%
-model.fit(train_images, train_labels, epochs=1)
-
-# %%
-model.evaluate(test_images, test_labels)
-
-# %%
-predictions = model.predict(t_test_images)
-
-# %%
-w = []
-w.append(model.get_weights()[0])
-w.append(model.get_weights()[1])
-w.append(model.get_weights()[2])
-w.append(model.get_weights()[3])
-
-
-#server.update_value(w)
-
-
-# %%
 '''
     특정 숫자의 image와 label의 리스트를 생성 함    
 '''
@@ -115,11 +83,12 @@ def make_sublist(index_list, images_list, labels_list, target_index):
 
     return target_images, target_labels
 
+
 # %%
 '''
     이미지를 출력
 '''
-def show(i) :
+def show(i):
     plt.figure(figsize=(5, 5))
     image = i
     plt.imshow(image, cmap='Greys')
@@ -127,46 +96,18 @@ def show(i) :
 
 # %%
 ti, tl = make_sublist(train_index_list, train_images, train_labels, 1)
-tti, ttl = make_sublist(test_index_list, test_images, test_labels, 1)
 m1 = TestModel()
-w1 = m1.set(ti, tl)
+w1 = m1.set(ti, tl, server.weight_list)
 server.update_value(w1)
 
 # %%
+
 ti, tl = make_sublist(train_index_list, train_images, train_labels, 9)
-tti, ttl = make_sublist(test_index_list, test_images, test_labels, 9)
 m9 = TestModel()
-w9 = m9.set(ti, tl)
-rweight = server.update_value(w9)
+w9 = m9.set(ti, tl, server.weight_list)
+server.update_value(w9)
 
 # %%
-
-rmodel = tf.keras.models.Sequential([
-            tf.keras.layers.Flatten(input_shape=(28, 28)),
-            tf.keras.layers.Dense(512, activation=tf.nn.relu),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-        ])
-
-rmodel.compile(optimizer=keras.optimizers.SGD(lr=0.5),
-                           loss=keras.losses.SparseCategoricalCrossentropy(),
-                           metrics=['accuracy'])
-
-rmodel.set_weights(rweight)
+server.clear_weight()
 
 #%%
-
-'''
-ti, tl = make_sublist(train_index_list, train_images, train_labels, 1)
-tti, ttl = make_sublist(test_index_list, test_images, test_labels, 1)
-
-rmodel.evaluate(tti, ttl)
-'''
-
-
-#%%
-rweight = server.update_value(w9)
-
-
-
-
