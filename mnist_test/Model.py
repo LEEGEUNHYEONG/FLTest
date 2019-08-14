@@ -7,12 +7,11 @@ class TestModel:
     train_label = []
     model = None
 
-    number_epochs = 5
-
     def __init__(self):
+        self.init_model()
         return
 
-    def set(self, train_image, train_label, weights=[]):
+    def init_model(self):
         self.model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(28, 28)),
             tf.keras.layers.Dense(512, activation=tf.nn.relu),
@@ -20,22 +19,27 @@ class TestModel:
             tf.keras.layers.Dense(10, activation=tf.nn.softmax)
         ])
 
-        self.model.compile(optimizer=keras.optimizers.SGD(lr=0.5),
+        self.model.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1),
                            loss=keras.losses.SparseCategoricalCrossentropy(),
-                           metrics=['accuracy'])
+                           metrics=['accuracy'],
+                        )
 
-        if len(weights) != 0:
-            self.model.add_weight = weights
+    def set(self, train_image, train_label, weights=[], epoch=5, batch_size=32):
+        self.set_local_weight(weights)
+        self.model.fit(train_image, train_label, epochs=epoch, batch_size=batch_size)
 
-        self.model.fit(train_image, train_label)
-
-        return self.model.get_weights()
+        return self.model
 
     def get_weight(self):
         return self.model.get_weights()
 
-    def evaluate(self, test_image, test_label):
+    def set_local_weight(self, weight_list):
+        if len(weight_list) != 0:
+            self.model.set_weights(weight_list)
+
+    def local_evaluate(self, test_image, test_label):
         self.model.evaluate(test_image, test_label)
+
 
 
     '''

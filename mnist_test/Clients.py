@@ -95,19 +95,88 @@ def show(i):
     plt.show()
 
 # %%
-ti, tl = make_sublist(train_index_list, train_images, train_labels, 1)
-m1 = TestModel()
-w1 = m1.set(ti, tl, server.weight_list)
-server.update_value(w1)
 
-# %%
+'''
+for i in range(10) :
+    print("round : {}".format(i))
+    for j in range(20):
+        ti, tl = make_sublist(train_index_list, train_images, train_labels, i)
+        m1 = TestModel()
+        if i != 0 :
+            m1.set_local_weight(server.get_weight())
+        m1.set(ti, tl)
+        w1 = m1.get_weight()
+        server.update_value(w1)
+'''
+#%%
+'''
+    mnist의 특정 숫자만 federate 학습 하도록 함 
+'''
+def learning_federated_number(value=0):
+    ti, tl = make_sublist(train_index_list, train_images, train_labels, value)
+    m1 = TestModel()
+    m1.set(ti, tl, server.get_weight())
+    server.update_value(m1.get_weight())
 
-ti, tl = make_sublist(train_index_list, train_images, train_labels, 9)
-m9 = TestModel()
-w9 = m9.set(ti, tl, server.weight_list)
-server.update_value(w9)
-
-# %%
-server.clear_weight()
 
 #%%
+'''
+    서버에서 fed_weight를 받아와 특정 숫자로 로컬 테스트 진행
+'''
+def evaluate_federated_number(value=-1):
+    m1 = TestModel()
+    m1.set(train_images, train_labels, weights=server.get_weight())
+    if value == -1:
+        m1.local_evaluate(test_images, test_labels)
+    else:
+        ti, tl = make_sublist(test_index_list, test_images, test_labels, value)
+        m1.local_evaluate(ti, tl)
+
+#%%
+def evaluate_number(value = -1):
+    m1 = TestModel()
+    m1.set(train_images, train_labels)
+    if value == -1 :
+        m1.local_evaluate(test_images, test_labels)
+    else:
+        ti, tl = make_sublist(test_index_list, test_images, test_labels, value)
+        m1.local_evaluate(ti, tl)
+
+# %%
+'''
+    클라이언트의 수
+    0과 9만 학습 시킴 
+'''
+for i in range(10):
+    print("rount : {}".format(i))
+    learning_federated_number(0)
+    learning_federated_number(9)
+
+#%%
+evaluate_federated_number(9)
+
+#%%
+evaluate_number(9)
+
+#%%
+#server.clear_weight()
+
+#%%
+'''
+m = TestModel()
+ti2, tl2 = make_sublist(train_index_list, train_images, train_labels, 5)
+m.set_local_weight(server.weight_list)
+m.set(ti2, tl2, 1)
+ti2, tl2 = make_sublist(test_index_list, test_images, test_labels, 5)
+m.local_evaluate(ti2, tl2)
+
+#%%
+mainModel = TestModel()
+ti2, tl2 = make_sublist(train_index_list, train_images, train_labels, 5)
+#m.set_local_weight(server.weight_list)
+mainModel.set(train_images, train_labels, epoch=1)
+mainModel.local_evaluate(ti2, tl2)
+# %%
+
+server.clear_weight()
+'''
