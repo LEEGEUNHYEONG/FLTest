@@ -3,9 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from mnist_test.Server import Server
 from mnist_test.Model import TestModel
+import datetime
 
+#%%
+from mnist_test.Server import Server
 server = Server.instance()
 
 '''
@@ -94,20 +96,6 @@ def show(i):
     plt.imshow(image, cmap='Greys')
     plt.show()
 
-# %%
-
-'''
-for i in range(10) :
-    print("round : {}".format(i))
-    for j in range(20):
-        ti, tl = make_sublist(train_index_list, train_images, train_labels, i)
-        m1 = TestModel()
-        if i != 0 :
-            m1.set_local_weight(server.get_weight())
-        m1.set(ti, tl)
-        w1 = m1.get_weight()
-        server.update_value(w1)
-'''
 #%%
 '''
     mnist의 특정 숫자만 federate 학습 하도록 함 
@@ -118,6 +106,12 @@ def learning_federated_number(value=0):
     m1.set(ti, tl, server.get_weight())
     server.update_value(m1.get_weight())
 
+#%%
+def learning_federated_split_number(value):
+    s_train_image, s_train_label = make_split_train_data_by_number(value)
+    model = TestModel()
+    model.set(s_train_image, s_train_label, server.get_weight(), batch_size=10)
+    server.update_value(model.get_weight())
 
 #%%
 '''
@@ -125,8 +119,12 @@ def learning_federated_number(value=0):
 '''
 def evaluate_federated_number(value=-1):
     m1 = TestModel()
-    m1.set(train_images, train_labels, weights=server.get_weight())
+    #m1.set(train_images, train_labels, weights=server.get_weight())
+    s_image, s_label = make_split_train_data()
+    m1.set(s_image, s_label, weights=server.get_weight())
     if value == -1:
+        #s_test_image, s_test_label = make_split_test_data()
+        #m1.local_evaluate(s_test_image, s_test_label)
         m1.local_evaluate(test_images, test_labels)
     else:
         ti, tl = make_sublist(test_index_list, test_images, test_labels, value)
@@ -144,39 +142,55 @@ def evaluate_number(value = -1):
 
 # %%
 '''
-    클라이언트의 수
-    0과 9만 학습 시킴 
+    분류된 index image 리스트에서 (train_index_list) 특정 index에서 size갯수만큼 랜덤하게 뽑아 
+    분할된 이미지 리스트를 만듦, sklearn의 mnist_test_split()과 유사한 기능  
 '''
-for i in range(10):
-    print("rount : {}".format(i))
-    learning_federated_number(0)
-    learning_federated_number(9)
+def make_split_train_data_by_number(index_number, size=600):
+    random_index = np.random.randint(0, high=len(train_index_list[index_number]), size=size)
 
-#%%
-evaluate_federated_number(9)
+    s_train_image=[]
+    s_train_label=[]
+    for v in random_index:
+        s_train_image.append(train_images[train_index_list[index_number][v]])
+        s_train_label.append(train_labels[train_index_list[index_number][v]])
+    return np.array(s_train_image), np.array(s_train_label)
 
-#%%
-evaluate_number(9)
-
-#%%
-#server.clear_weight()
-
-#%%
-'''
-m = TestModel()
-ti2, tl2 = make_sublist(train_index_list, train_images, train_labels, 5)
-m.set_local_weight(server.weight_list)
-m.set(ti2, tl2, 1)
-ti2, tl2 = make_sublist(test_index_list, test_images, test_labels, 5)
-m.local_evaluate(ti2, tl2)
-
-#%%
-mainModel = TestModel()
-ti2, tl2 = make_sublist(train_index_list, train_images, train_labels, 5)
-#m.set_local_weight(server.weight_list)
-mainModel.set(train_images, train_labels, epoch=1)
-mainModel.local_evaluate(ti2, tl2)
 # %%
+def make_split_train_data(size=600):
+    random_index = np.random.randint(0, high=len(train_labels), size=size)
 
+    s_train_image = []
+    s_train_label = []
+    for v in random_index:
+        s_train_image.append(train_images[v])
+        s_train_label.append(train_labels[v])
+    return np.array(s_train_image), np.array(s_train_label)
+
+# %%
+def make_split_test_data(size=100):
+    random_index = np.random.randint(0, high=len(test_labels), size=size)
+
+    s_test_image = []
+    s_label_label = []
+    for v in random_index:
+        s_test_image.append(test_images[v])
+        s_label_label.append(test_labels[v])
+    return np.array(s_test_image), np.array(s_label_label)
+
+#%%
+for i in range(100):
+    print("round : ", i)
+    for j in range(10):
+        learning_federated_split_number(j)
+
+
+#%%
+evaluate_federated_number()
+
+ #%%
+#evaluate_number()
+
+
+#%%
 server.clear_weight()
-'''
+
