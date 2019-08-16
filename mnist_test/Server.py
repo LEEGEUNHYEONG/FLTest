@@ -51,11 +51,16 @@ class Server:
     server_avg = None
     def update_weight2(self, weight):
         local_avg = copy.deepcopy(weight)
-        server_avg = []
-        for i in range(len(local_avg)):
-            server_avg[i] += local_avg[i]
-        server_avg = np.divide(server_avg, len(local_avg))
-        return server_avg
+        if self.server_avg is None :
+            #print("server weight null ")
+            self.server_avg = local_avg[0]
+        else:
+            for i in range(len(local_avg)) :
+                for j in range(4) : # layer number
+                    self.server_avg[j] += local_avg[i][j]
+            self.server_avg = np.divide(self.server_avg, len(local_avg) + 1)
+
+        return self.server_avg
 
     def get_weight2(self):
         return self.server_avg

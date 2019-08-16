@@ -129,9 +129,8 @@ def learning_federated_split_number(value):
 
 def evaluate_federated_number(value=-1):
     m1 = TestModel()
-    # m1.set(train_images, train_labels, weights=server.get_weight())
     s_image, s_label = make_split_train_data()
-    m1.set(s_image, s_label, weights=server.get_weight())
+    m1.set(s_image, s_label, weights=server.get_weight2())
     if value == -1:
         # s_test_image, s_test_label = make_split_test_data()
         # m1.local_evaluate(s_test_image, s_test_label)
@@ -194,29 +193,27 @@ def make_split_test_data(size=100):
 
 
 # %%
-def run_federate(user_number=10, round=10):
+def run_federate(user_number=1, round=1):
     print("start federate")
-
-
-    for i in range(round):
-        localModel = TestModel()
+    localModel = TestModel()
+    for i in range(1, round):
         server_weight = server.get_weight2()
-        print("round : {}, server weight : {}".format(i, server_weight))
+        print("round : {}".format(i))
         local_weight_list = []
 
         for u in range(user_number):
             ti, tl = make_split_train_data()
-            local_weight = localModel.set(ti, tl, server_weight)
+            local_weight = localModel.set(ti, tl, server_weight, batch_size = 10)
             local_weight_list.append(local_weight)
 
         server.update_weight2(local_weight_list)
 
 
 # %%
-run_federate()
+run_federate(user_number=10, round = 10)
 
 # %%
-#evaluate_federated_number()
+evaluate_federated_number()
 
 # %%
 # evaluate_number()
