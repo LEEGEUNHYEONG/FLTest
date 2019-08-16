@@ -1,4 +1,6 @@
 # %%
+import copy
+
 import numpy as np
 
 class Server:
@@ -46,14 +48,28 @@ class Server:
 
         return self.weight_list
 
+    server_avg = None
+    def update_weight2(self, weight):
+        local_avg = copy.deepcopy(weight)
+        server_avg = []
+        for i in range(len(local_avg)):
+            server_avg[i] += local_avg[i]
+        server_avg = np.divide(server_avg, len(local_avg))
+        return server_avg
+
+    def get_weight2(self):
+        return self.server_avg
+
     def clear_weight(self):
         self.weight_list = []
+        self.server_avg = [0]
         self.count = 0
 
 
     def get_weight(self):
         if self.weight_list or self.count > 0:
             print("server weight not null")
+
             return self.weight_list
         else:
             print("server weight null")
