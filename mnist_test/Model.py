@@ -1,7 +1,6 @@
+import keras.backend.tensorflow_backend as K
 import tensorflow as tf
 from tensorflow import keras
-import keras.backend.tensorflow_backend as K
-
 
 
 class TestModel:
@@ -15,23 +14,26 @@ class TestModel:
         return
 
     def init_model(self):
+
         '''
-                with K.tf.device('/gpu:0'):
-                    self.model = tf.keras.models.Sequential([
-                        tf.keras.layers.Flatten(input_shape=(28, 28)),
-                        tf.keras.layers.Dense(200, activation='relu'),
-                        tf.keras.layers.Dense(200, activation='relu'),
-                        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-                    ])
-                '''
+               https://github.com/roxanneluo/Federated-Learning/blob/master/mnist_cnn.py
         '''
-           https://github.com/roxanneluo/Federated-Learning/blob/master/mnist_cnn.py
+        '''
+        with K.tf.device('/gpu:0'):
+            self.model = tf.keras.models.Sequential([
+                tf.keras.layers.Flatten(input_shape=(28, 28)),
+                tf.keras.layers.Dense(512, activation='relu'),
+                tf.keras.layers.Dropout(0.2),
+                tf.keras.layers.Dense(512, activation='relu'),
+                tf.keras.layers.Dropout(0.2),
+                tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+            ])
         '''
 
         #   Server layer 갯수 변경
         with K.tf.device('/gpu:0'):
             self.model = tf.keras.models.Sequential([
-                tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding='same', activation=tf.nn.relu, input_shape=(28, 28, 1)),
+                tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation=tf.nn.relu, input_shape=(28, 28, 1)),
                 tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation=tf.nn.relu),
                 tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
                 tf.keras.layers.Dropout(0.25),
@@ -45,24 +47,29 @@ class TestModel:
                                loss=keras.losses.SparseCategoricalCrossentropy(),
                                metrics=['accuracy'])
 
+
     def set(self, train_image, train_label, weights=None, epoch=5, batch_size=10):
         with K.tf.device('/gpu:0'):
             self.set_local_weight(weights)
             train_image = train_image.reshape((-1, 28, 28, 1))
-            self.model.fit(train_image, train_label, epochs=epoch, batch_size=batch_size)
+            hist = self.model.fit(train_image, train_label, epochs=epoch, batch_size=batch_size, verbose=0)
+        return hist, self.model.get_weights()
 
-        return self.model.get_weights()
 
     def get_weight(self):
         return self.model.get_weights()
 
+
     def set_local_weight(self, weight_list):
-        if weight_list is not None :  # todo : initialize weight  체크 방법
+        if weight_list is not None:  # todo : initialize weight  체크 방법
             self.model.set_weights(weight_list)
+
 
     def local_evaluate(self, test_image, test_label):
         test_image = test_image.reshape((-1, 28, 28, 1))
-        self.model.evaluate(test_image, test_label)
+        result = self.model.evaluate(test_image, test_label)
+        return result
+
 
     '''
        model.fit(train_images, train_labels, epochs=1)

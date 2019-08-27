@@ -59,7 +59,7 @@ class Server:
             self.server_avg = local_avg[0]
         else:
             for i in range(len(local_avg)) :
-                for j in range(8) : # layer number
+                for j in range(len(local_avg[i])) : # layer number
                     self.server_avg[j] += local_avg[i][j]
             self.server_avg = np.divide(self.server_avg, len(local_avg) + 1)
 
