@@ -14,7 +14,6 @@ class TestModel:
         return
 
     def init_model(self):
-
         '''
                https://github.com/roxanneluo/Federated-Learning/blob/master/mnist_cnn.py
         '''

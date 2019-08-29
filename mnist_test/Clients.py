@@ -203,7 +203,7 @@ def make_graph(acc_list, loss_list):
 
 
 # %%
-def run_federate(user_number=1, round=1):
+def run_federate(user_number=1, round=1, batch_size = 10, epoch = 5):
     print("start federate")
     acc_list = []
     acc_list.append(0)
@@ -219,7 +219,7 @@ def run_federate(user_number=1, round=1):
         for u in range(user_number):
             #ti, tl = make_split_train_data()
             ti, tl = make_split_train_data_by_number(0)
-            hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=10, epoch=5)
+            hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=batch_size, epoch=epoch)
             local_weight_list.append(local_weight)
 
             ti, tl = make_split_train_data_by_number(9)
@@ -267,7 +267,7 @@ def evaluate_federated_number(value=-1):
 
 # %%
 start_time = time.time()
-run_federate(user_number=10, round = 400)
+run_federate(user_number=10, round = 200, batch_size=10, epoch=20 )
 print("time : {}".format(time.time()-start_time))
 
 
