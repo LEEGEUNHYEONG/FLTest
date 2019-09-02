@@ -9,16 +9,20 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PolynomialFeatures
-from Base import BaseFedClient
-
-fedClient = BaseFedClient.BaseFedClient()
+from Base.BaseFedClient import BaseFedClient
+import seaborn as sns
+import matplotlib.pyplot as plt
+import time
 
 warnings.filterwarnings('ignore')
-data = pd.read_csv('../FLTest/MedicalCost/insurance.csv')
+data = pd.read_csv('../MedicalCost/insurance.csv')
 
 # %%    데이터 확인
 print(data.head())
 print(data.isnull().sum())
+
+data = data.dropna()
+
 
 # %%    value change by on-hot-encoding
 from sklearn.preprocessing import LabelEncoder
@@ -38,14 +42,35 @@ le.fit(data.region.drop_duplicates())
 data.region = le.transform(data.region)
 
 print(data)
-# %%
 
+# %%
+train_dataset = data.sample(frac=0.8, random_state=0)
+test_dataset = data.drop(train_dataset.index)
+print(len(train_dataset), len(test_dataset))
+
+sns.pairplot(train_dataset[["age", "bmi", "charges"]], diag_kind="kde")
+#plt.show()
+
+train_stats = train_dataset.describe()
+train_stats.pop('charges')
+train_stats = train_stats.transpose()
+print(train_stats)
+
+train_labels = train_dataset.pop('charges')
+test_labels = test_dataset.pop('charges')
+
+# %%
+def norm(x):
+    return (x - train_stats['mean']) / train_stats['std']
+normed_train_data = norm(train_dataset)
+normed_test_data = norm(test_dataset)
 
 # %%    LinearRegression
 x = data.drop(['charges'], axis=1)
 y = data.charges
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=0)
+
 lr = LinearRegression().fit(x_train, y_train)
 
 print(len(x_train), len(x_test))
@@ -78,9 +103,10 @@ forest = RandomForestRegressor(n_estimators=100,
                                criterion='mse',
                                random_state=1,
                                n_jobs=-1)
-forest.fit(x_train, y_train)
+forest.fit(x_train, y_train )
 
 forest_train_pred = forest.predict(x_train)
+print("weight : " , forest)
 forest_test_pred = forest.predict(x_test)
 
 print('MSE train data: %.3f, MSE test data: %.3f' % (
@@ -91,6 +117,18 @@ print('R2 train data: %.3f, R2 test data: %.3f' % (
     r2_score(y_test, forest_test_pred)))
 
 # %%
-fedClient.test()
+user_number = 10
+round_number = 10
+client_epoch = 20
 
+#%%
+fedClient = BaseFedClient()
+fedClient.set(normed_train_data, train_labels, normed_test_data, test_labels)
+print(normed_train_data)
+
+# %%
+fedClient.run_federate()
+
+#%%
+fedClient.run_evaluate()
 

@@ -39,5 +39,4 @@ class BaseServer:
     def get_weight(self):
         if self.server_weight_avg or self.count > 0:
             return self.server_weight_avg
-
         return []

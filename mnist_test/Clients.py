@@ -127,7 +127,7 @@ def print_round(number):
 def learning_federated_number(value=0):
     ti, tl = make_sublist(train_index_list, train_images, train_labels, value)
     m1 = TestModel()
-    m1.set(ti, tl, server.get_weight())
+    m1.set(ti, tl, server.get_local_weight())
     server.update_value(m1.get_weight())
 
 
@@ -135,7 +135,7 @@ def learning_federated_number(value=0):
 def learning_federated_split_number(value):
     s_train_image, s_train_label = make_split_train_data_by_number(value)
     model = TestModel()
-    model.set(s_train_image, s_train_label, server.get_weight(), batch_size=10)
+    model.set(s_train_image, s_train_label, server.get_local_weight(), batch_size=10)
     server.update_value(model.get_weight())
 
 # %%
