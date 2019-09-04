@@ -94,9 +94,9 @@ lr = LinearRegression().fit(x_train, y_train)
 y_train_pred = lr.predict(x_train)
 y_test_pred = lr.predict(x_test)
 
-print(lr.score(x_test, y_test))
-#show_graph(y_test, y_test_pred)
-print(metrics.mean_absolute_error(y_test, y_test_pred))
+print('score : ', lr.score(x_test, y_test))
+show_graph(y_test, y_test_pred)
+print("mae : ", metrics.mean_absolute_error(y_test, y_test_pred))
 
 
 # %%    LinearRegression region delete
@@ -145,14 +145,15 @@ history = fedClient.run_federate()
 
 # %%
 result = fedClient.run_predict()
-#show_graph(test_labels, result)
+show_graph(test_labels, result)
 
 # %%
 fedClient.run_evaluate()
 
 #%%
-'''
-plt.scatter(test_labels, result, c='blue' )
-plt.scatter(y_test, y_test_pred, c='red')
+plt.scatter(test_labels, result, c='blue', label='fedrate' )
+plt.legend()
+plt.scatter(y_test, y_test_pred, c='red', label = 'lr')
+plt.legend()
 plt.show()
-'''
+

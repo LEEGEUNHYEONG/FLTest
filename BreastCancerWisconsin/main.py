@@ -3,25 +3,20 @@
 '''
 # %%
 import copy
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import tensorflow as tf
-from boto.dynamodb import batch
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
-
 import Base.BaseServer as BaseServer
 import numpy as np
 
 # %%
 server = BaseServer.BaseServer.instance()
-
-
-data = pd.read_csv('../BreastCancerWisconsin/data.csv')
+data = pd.read_csv('BreastCancerWisconsin/data.csv')
 del data['Unnamed: 32']
 
 # %%
@@ -52,10 +47,17 @@ def build_model():
         tf.keras.layers.Dense(units=1, kernel_initializer='uniform', activation='sigmoid')
     ])
 
-    # original - classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    # original
+    '''
+    model.compile(optimizer='adam',
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
+    '''
+
     model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.1),
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
+
     return model
 
 
@@ -63,20 +65,21 @@ def build_model():
 model = build_model()
 
 # %%
-# original - classifier.fit(X_train, y_train, batch_size=100, nb_epoch=150)
+# original
+#model.fit(X_train, y_train, batch_size=100, epochs=150)
+
 model.fit(X_train, y_train, batch_size=10, epochs=1)
 
 # %%
 y_pred = model.predict(X_test)
 y_pred = (y_pred > 0.5)
 
-# %%
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
-print("accuracy : ", ((cm[0][0] + cm[1][1]) / len(X_test)) * 100)
+print("accuracy : {}".format(((cm[0][0] + cm[1][1]) / len(X_test)) * 100))
 
 sns.heatmap(cm, annot=True)
-# plt.show()
+plt.show()
 
 # %%
 '''
@@ -87,7 +90,8 @@ for i in range(len(y_pred)):
 def run_federate(user_number=3, round_number=2, epoch=20, batch_size=10):
     train_list = np.array_split(X_train, user_number+1)
     test_list = np.array_split(y_train, user_number+1)
-    print("federate start : user number : {}, each size : {}".format(user_number, len(train_list) ))
+    print("federate start : user number : {}, total size : {}, each size : {}".format(user_number, len(X_train),len(train_list[0]) ))
+
     local_model = build_model()
     for r in range(round_number):
         local_weight_list = []
@@ -96,25 +100,21 @@ def run_federate(user_number=3, round_number=2, epoch=20, batch_size=10):
         print('---------')
         for user in range(user_number):
             server_weight = server.get_weight()
-            #print("user number : ", user)
-            #print("server weight : ", server_weight)
-            if server_weight is not None :
-                #print("update weight from server")
+            if server_weight is not None:
                 local_model.set_weights(server_weight)
-            local_model.fit(train_list[user], test_list[user], epochs=epoch, batch_size=batch_size, verbose=1)
-
-            #print("local weight : ", model.get_weights())
-            local_weight_list.append(model.get_weights())
+            local_model.fit(train_list[user], test_list[user], epochs=epoch, batch_size=batch_size, verbose=0)
+            local_weight_list.append(local_model.get_weights())
 
         server.update_weight(local_weight_list)
     print("federate end")
+
     predict_federate(train_list[-1], test_list[-1], X_test, y_test)
 
 # %%
 def predict_federate(x_train, y_train, x_test, y_test):
      model = build_model()
      model.set_weights(server.get_weight())
-     model.fit(x_train, y_train, epochs=20, batch_size=10)
+     model.fit(x_train, y_train, epochs=20, batch_size=10, verbose=0)
      result = model.predict(x_test)
      result = (result > 0.5)
      show_confusion_matrix(y_test, result)
@@ -130,12 +130,13 @@ def show_confusion_matrix(y_test, predict):
 
 
 # %%
-run_federate(user_number=5, round_number=10, batch_size=10, epoch=20)
+run_federate(user_number=5, round_number=2, batch_size=10, epoch=20)
 
 # %%
 predict_federate(X_train, y_train, X_test, y_test)
 
-
+# %%
+server.init_weight()
 
 
 

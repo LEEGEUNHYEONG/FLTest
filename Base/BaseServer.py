@@ -42,3 +42,7 @@ class BaseServer:
         if self.server_weight_avg is not None or self.count > 0:
             return self.server_weight_avg
         return None
+
+    def init_weight(self):
+        self.server_weight_avg = None
+        self.count = 0
