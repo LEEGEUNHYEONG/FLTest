@@ -29,6 +29,7 @@ class BaseServer:
         if self.server_weight_avg is None:
             self.server_weight_avg = local_avgs[0]
         else:
+            #print("local avgs : ", local_avgs)
             for i in range(len(local_avgs)):
                 for j in range(len(local_avgs[i])):
                     self.server_weight_avg[j] += local_avgs[i][j]
@@ -37,6 +38,7 @@ class BaseServer:
         return self.server_weight_avg
 
     def get_weight(self):
-        if self.server_weight_avg or self.count > 0:
+        #print("get_weight : ", self.server_weight_avg, " /// ", self.count)
+        if self.server_weight_avg is not None or self.count > 0:
             return self.server_weight_avg
-        return []
+        return None
