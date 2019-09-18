@@ -1,6 +1,10 @@
 # %%
+'''
+https://www.kaggle.com/joniarroba/noshowappointments
+'''
+# %%
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from sklearn.utils.multiclass import unique_labels
@@ -53,34 +57,51 @@ df_train['Neighbourhood'] = le.transform(df_train['Neighbourhood'])
 y_train = df_train['No-show']
 X_train = df_train.drop('No-show', axis=1)
 
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=.25)
+train_stats = X_train.describe()
+train_stats = train_stats.transpose()
 
-print( y_val.value_counts())
+X_train = (X_train - train_stats['mean'] ) / train_stats['std']
+
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=.2)
+
+result = [x for x in y_train if x == 1]
+print(len(y_train), " : " , len(result))
+
+result = [x for x in y_val if x == 1]
+print(len(y_val), " : ", len(result))
 
 # %%
 def build_model():
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(units=60, kernel_initializer='uniform', activation='relu', input_dim=10),
-
-        tf.keras.layers.Dense(units=1, kernel_initializer='uniform', activation='sigmoid')
+        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=10),
+        #tf.keras.layers.Dropout(0.25),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dense(units=64, activation=tf.nn.relu),
+        #tf.keras.layers.Dropout(0.25),
+        #tf.keras.layers.Dense(units=1, kernel_initializer='uniform', activation='sigmoid')
+        tf.keras.layers.Dense(1)
     ])
 
-    model.compile(#optimizer=tf.keras.optimizers.SGD(),
-                  optimizer='adam',
+    model.compile(optimizer=tf.keras.optimizers.SGD(momentum=0.9, learning_rate=0.1),
                   loss=tf.keras.losses.binary_crossentropy,
                   metrics=['accuracy'])
+
 
     return model
 
 model = build_model()
 # %%
-model.fit(X_train, y_train, batch_size=256, epochs=10)
+model.fit(X_train, y_train, batch_size=64, epochs=5)
 
 # %%
-print(X_val)
 y_pred = model.predict(X_val)
+
+result = [x for x in y_pred if x > 0.5]
+print(len(result))
+
 y_pred = (y_pred > 0.5)
-print("test : ", np.count_nonzero(y_pred==0), np.count_nonzero(y_pred==1))
+
+print("result count : ", np.count_nonzero(y_pred == 0), np.count_nonzero(y_pred == 1))
 
 cm = confusion_matrix(y_val, y_pred)
 print(cm)
@@ -111,7 +132,7 @@ print("accuracy : {}".format(((cm[0][0] + cm[1][1]) / len(X_val)) * 100))
 
 # %% Support Vector
 from sklearn import svm
-clf = svm.SVC(gamma=0.001, C = 100)
+clf = svm.SVC(gamma=0.001, C = 1)
 clf.fit(X_train, y_train)
 
 y_pred = clf.predict(X_val)
