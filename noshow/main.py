@@ -156,11 +156,13 @@ def print_cm(y_val, y_pred):
 def build_model():
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=112),
-        tf.keras.layers.Dense(units=64, activation=tf.nn.relu),
+        tf.keras.layers.Dense(units=1024, activation=tf.nn.relu, input_dim=112),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(units=1024, activation=tf.nn.relu),
+        tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(1, activation='sigmoid')
     ])
-    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.1),
+    model.compile(optimizer=tf.keras.optimizers.Adam(),
                   loss=tf.keras.losses.binary_crossentropy,
                   metrics=['accuracy'])
 
