@@ -2,6 +2,8 @@ import copy
 
 import numpy as np
 
+import utils.GeometricMedian as gm
+from statistics import harmonic_mean
 
 class BaseServer:
     __instance = None
@@ -10,13 +12,13 @@ class BaseServer:
     count = 0
 
     @classmethod
-    def get_instance(cls):
+    def __get_instance(cls):
         return cls.__instance
 
     @classmethod
     def instance(cls):
         cls.__instance = cls()
-        cls.instance = cls.get_instance()
+        cls.instance = cls.__get_instance()
         return cls.__instance
 
     def __init__(self):
@@ -29,11 +31,9 @@ class BaseServer:
         if self.server_weight_avg is None:
             self.server_weight_avg = local_avgs[0]
         else:
-            #print("local avgs : ", local_avgs)
-            for i in range(len(local_avgs)):
-                for j in range(len(local_avgs[i])):
-                    self.server_weight_avg[j] += local_avgs[i][j]
-            self.server_weight_avg = np.divide(self.server_weight_avg, len(local_avgs) + 1)
+            ''' average '''
+            self.cal_average(local_avgs)
+            self.cal_harmonic_mean(local_avgs)
 
         return self.server_weight_avg
 
@@ -46,3 +46,17 @@ class BaseServer:
     def init_weight(self):
         self.server_weight_avg = None
         self.count = 0
+
+    def cal_average(self, local_avgs):
+        for i in range(len(local_avgs)):
+            for j in range(len(local_avgs[i])):
+                self.server_weight_avg[j] += local_avgs[i][j]
+        self.server_weight_avg = np.divide(self.server_weight_avg, len(local_avgs) + 1)
+
+
+    temp_local_weight = None
+    def cal_harmonic_mean(self, local_weights):
+        temp_weight = self.server_weight_avg
+
+        for i in range(len(local_weights)):
+            self.temp_local_weight = local_weights[i]

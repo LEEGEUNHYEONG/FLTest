@@ -7,22 +7,24 @@ https://www.kaggle.com/belagoesr/predicting-no-show-downsampling-approach-with-r
 '''
 
 # %%
+import os
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
-#import pycm as pcm
-
 
 import tensorflow as tf
+
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
+
+from time import time
 
 import Base.BaseServer as BaseServer
 
 le = LabelEncoder()
-server = BaseServer.BaseServer()
+server = BaseServer.BaseServer.instance()
 
 # %%
 def map_waiting_interval_to_days(x):
@@ -90,7 +92,7 @@ def one_hot_encode(data):
 
 
 # %%
-df_train = pd.read_csv('noshow/KaggleV2-May-2016.csv')
+df_train = pd.read_csv('noshow/KaggleV2-May-2016-balanced.csv')
 
 processed_data = processing_data(df_train)
 print(processed_data.head())
@@ -156,13 +158,14 @@ def print_cm(y_val, y_pred):
 def build_model():
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(units=1024, activation=tf.nn.relu, input_dim=112),
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(units=1024, activation=tf.nn.relu),
-        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=111),
+        #tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(units=64, activation=tf.nn.relu),
+        #tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(1, activation='sigmoid')
     ])
-    model.compile(optimizer=tf.keras.optimizers.Adam(),
+
+    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.01),
                   loss=tf.keras.losses.binary_crossentropy,
                   metrics=['accuracy'])
 
@@ -170,8 +173,13 @@ def build_model():
     return model
 
 model = build_model()
+
 # %%
-model.fit(X_train, y_train, batch_size=32, epochs=10)
+log_dir = os.path.join("noshow", "board", datetime.now().strftime("%Y%m%d-%H%M%S"))
+tensorboard = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+# %%
+model.fit(X_train, y_train, batch_size=32, epochs=10, callbacks=[tensorboard])
 
 # %%    nn
 y_pred = model.predict(X_val)
@@ -231,7 +239,7 @@ def run_federate(user_number = 3, round_number =2, epoch = 5, batch_size = 10):
     print("federate end")
 
     predict_federate(train_list[-1], test_list[-1], X_val, y_val)
-    non_federate(train_list[-1], test_list[-1], X_val, y_val)
+    #non_federate(train_list[-1], test_list[-1], X_val, y_val)
 
 
 # %%
@@ -258,7 +266,7 @@ def predict_federate(x_train, y_train, x_test, y_test):
     print("federate validation end")
 
 # %%
-run_federate(user_number=10, round_number=10, batch_size=16, epoch=5)
+run_federate(user_number=2, round_number=3, batch_size=16, epoch=5)
 
 # %%
 def test():
@@ -273,8 +281,16 @@ test()
 
 
 
-#%%
+# %%
 server.init_weight()
 
 # %%
+from sklearn.ensemble import AdaBoostClassifier
+cls = AdaBoostClassifier(n_estimators=100)
+cls.fit(X_train, y_train)
+scores = cross_val_score(cls, X_train, y_train)
+print("1 : {}".format(scores.mean()))
+#cls.predict(X_val)
 
+
+print(cls.score(X_val, y_val))
