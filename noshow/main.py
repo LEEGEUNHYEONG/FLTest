@@ -15,7 +15,7 @@ import pandas as pd
 
 import tensorflow as tf
 
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 
@@ -25,6 +25,10 @@ import Base.BaseServer as BaseServer
 
 le = LabelEncoder()
 server = BaseServer.BaseServer.instance()
+
+from sklearn import metrics
+import matplotlib.pyplot as plt
+
 
 # %%
 def map_waiting_interval_to_days(x):
@@ -92,7 +96,7 @@ def one_hot_encode(data):
 
 
 # %%
-df_train = pd.read_csv('noshow/KaggleV2-May-2016-balanced.csv')
+df_train = pd.read_csv('noshow/KaggleV2-May-2016.csv')
 
 processed_data = processing_data(df_train)
 print(processed_data.head())
@@ -154,11 +158,62 @@ def print_cm(y_val, y_pred):
     print(cm)
     print("accuracy : {}".format(((cm[0][0] + cm[1][1]) / len(X_val)) * 100))
 
+# %% roc curve
+def print_roc_curve(y_test, y_predict):
+    y_true = np.array(y_test)
+    y_probas = y_predict
+
+
+    print(len(y_true), len(y_probas) , y_true.shape, y_probas.shape)
+
+    '''
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+
+    for i in range(len(y_true)) :
+        print("{} / {} / {}".format(i, y_true[i], y_probas[i]))
+        fpr[i], tpr[i], _ = roc_curve(y_true[i], y_probas[i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_true.ravel(), y_probas.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+    '''
+    fpr, tpr, thresholds = roc_curve(y_true, y_probas)
+    roc_auc = auc(fpr, tpr)
+    print(fpr, tpr, roc_auc)
+    lw = 2
+    plt.plot(fpr, tpr, color='darkorange',
+             lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    #plt.title('Receiver operating characteristic example')
+    plt.legend(loc="lower right")
+    plt.show()
+
+    '''
+    plt.figure()
+    lw = 2
+    plt.plot(fpr[2], tpr[2], color='darkorange',
+             lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[2])
+    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic example')
+    plt.legend(loc="lower right")
+    plt.show()
+    '''
+
 # %%
 def build_model():
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=111),
+        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=112),
         #tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(units=64, activation=tf.nn.relu),
         #tf.keras.layers.Dropout(0.5),
@@ -174,12 +229,13 @@ def build_model():
 
 model = build_model()
 
+
 # %%
 log_dir = os.path.join("noshow", "board", datetime.now().strftime("%Y%m%d-%H%M%S"))
 tensorboard = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 # %%
-model.fit(X_train, y_train, batch_size=32, epochs=10, callbacks=[tensorboard])
+model.fit(X_train, y_train, batch_size=16, epochs=10, callbacks=[tensorboard])
 
 # %%    nn
 y_pred = model.predict(X_val)
@@ -187,6 +243,8 @@ y_pred = (y_pred > 0.5)
 
 print("result count : ", np.count_nonzero(y_pred == 0), np.count_nonzero(y_pred == 1))
 print_cm(y_val, y_pred)
+
+print_roc_curve(y_val, y_pred)
 
 # %%    random forest
 from sklearn.ensemble import RandomForestClassifier
@@ -239,8 +297,6 @@ def run_federate(user_number = 3, round_number =2, epoch = 5, batch_size = 10):
     print("federate end")
 
     predict_federate(train_list[-1], test_list[-1], X_val, y_val)
-    #non_federate(train_list[-1], test_list[-1], X_val, y_val)
-
 
 # %%
 def non_federate(x_train, y_train, x_test, y_test ):
@@ -265,8 +321,11 @@ def predict_federate(x_train, y_train, x_test, y_test):
     print_cm(y_test, result)
     print("federate validation end")
 
+    print_roc_curve(y_test, result)
+
+
 # %%
-run_federate(user_number=2, round_number=3, batch_size=16, epoch=5)
+run_federate(user_number=10, round_number=10, batch_size=16, epoch=5)
 
 # %%
 def test():
@@ -279,18 +338,10 @@ def test():
 
 test()
 
+# %%
+
 
 
 # %%
 server.init_weight()
 
-# %%
-from sklearn.ensemble import AdaBoostClassifier
-cls = AdaBoostClassifier(n_estimators=100)
-cls.fit(X_train, y_train)
-scores = cross_val_score(cls, X_train, y_train)
-print("1 : {}".format(scores.mean()))
-#cls.predict(X_val)
-
-
-print(cls.score(X_val, y_val))

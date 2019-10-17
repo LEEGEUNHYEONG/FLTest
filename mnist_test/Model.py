@@ -17,7 +17,7 @@ class TestModel:
         '''
                https://github.com/roxanneluo/Federated-Learning/blob/master/mnist_cnn.py
         '''
-        '''
+
         with K.tf.device('/gpu:0'):
             self.model = tf.keras.models.Sequential([
                 tf.keras.layers.Flatten(input_shape=(28, 28)),
@@ -27,8 +27,8 @@ class TestModel:
                 tf.keras.layers.Dropout(0.2),
                 tf.keras.layers.Dense(10, activation=tf.nn.softmax)
             ])
-        '''
 
+        '''
         #   Server layer 갯수 변경
         with K.tf.device('/gpu:0'):
             self.model = tf.keras.models.Sequential([
@@ -41,8 +41,8 @@ class TestModel:
                 tf.keras.layers.Dropout(0.5),
                 tf.keras.layers.Dense(10, activation=tf.nn.softmax),
             ])
-
-            self.model.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1),
+        '''
+        self.model.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1),
                                loss=keras.losses.SparseCategoricalCrossentropy(),
                                metrics=['accuracy'])
 
@@ -51,13 +51,15 @@ class TestModel:
         with K.tf.device('/gpu:0'):
             self.set_local_weight(weights)
             train_image = train_image.reshape((-1, 28, 28, 1))
-            hist = self.model.fit(train_image, train_label, epochs=epoch, batch_size=batch_size, verbose=0)
+            hist = self.model.fit(train_image, train_label, epochs=epoch, batch_size=batch_size, verbose=1)
         return hist, self.model.get_weights()
 
 
     def get_weight(self):
         return self.model.get_weights()
 
+    def set_global_weight(self, weight):
+        self.model.set_weights(weight)
 
     def set_local_weight(self, weight_list):
         if weight_list is not None:  # todo : initialize weight  체크 방법
@@ -66,7 +68,7 @@ class TestModel:
 
     def local_evaluate(self, test_image, test_label):
         test_image = test_image.reshape((-1, 28, 28, 1))
-        result = self.model.evaluate(test_image, test_label)
+        result = self.model.predict(test_image, test_label, verbose=0)
         return result
 
 

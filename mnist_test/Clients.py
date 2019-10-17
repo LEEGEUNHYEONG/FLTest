@@ -1,14 +1,14 @@
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
-from tensorflow import keras
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 import matplotlib.ticker as mticker
 import time
-from mnist_test.Model import TestModel
+import tensorflow as tf
+from tensorflow import keras
+import Base.BaseServer as Server
 # %%
-from mnist_test.Server import Server
-
-server = Server.instance()
+server = Server.BaseServer.instance()
 
 '''
 #   그래픽카드 사용 확인 
@@ -19,7 +19,7 @@ print(device_lib.list_local_devices())
 np.random.seed(42)
 
 # %%
-mnist = keras.datasets.mnist
+mnist = tf.keras.datasets.mnist
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 train_images, test_images = train_images / 255.0, test_images / 255.0
 
@@ -100,30 +100,112 @@ def show(i):
     plt.imshow(image, cmap='Greys')
     plt.show()
 
-#%%
-def print_round(number):
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('--------------------------------------- round : ', number)
-    print('--------------------------------------- round : ', number)
-    print('--------------------------------------- round : ', number)
-    print('--------------------------------------- round : ', number)
-    print('--------------------------------------- round : ', number)
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
-    print('----------------------------------------------------------------------')
+# %%
+def build_model():
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Flatten(input_shape=(28, 28)),
+        tf.keras.layers.Dense(10, activation='relu'),
+        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+    ])
+
+    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.1),
+                       loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                       metrics=['accuracy'])
+
+    return model
+
+# %%
+def train():
+    model = build_model()
+    result = model.fit(train_images, train_labels, epochs=1)
+
+    return result
+
+# %%
+round_result_acc = []
+round_result_loss = []
+def run_federated(user_number = 1, round = 1, batch_size = 16, epochs = 10):
+    print("start run federated")
+    acc_list = []
+    loss_list = []
+    #round_result_list = []
+
+    for i in range(round):
+        local_weight_list = []
+        for u in range(user_number):
+            model = build_model()
+            print_train_info(i, u)
+            server_weight = server.get_weight()
+
+            if server_weight is not None:
+                model.set_weights(server_weight)
+
+            td, tl = make_split_train_data_by_number(0, size= 1000) #   특정 숫자의 데이터만 선택하여 subset 만듦
+            model.fit(td, tl, batch_size=batch_size, epochs=epochs, verbose=0)
+            local_weight_list.append(model.get_weights())
+
+        server.update_weight(local_weight_list)
+
+        if i % 1 == 0 :
+            acc, loss = predict_part(i)
+            round_result_acc.append(acc)
+            round_result_loss.append(loss)
+
+
+    #print("acc : {} , loss : {}".format(round_result_acc, round_result_loss))
+    make_graph(round_result_acc, round_result_loss)
+    #predict_federated()
+
+# %%
+def predict_federated():
+    model = build_model()
+    model.set_weights(server.get_weight())
+    test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=2)
+    #print("test acc :{}, test loss :{}".format(test_acc, test_loss))
+
+    result = model.predict(test_images)
+    result = np.argmax(result, axis = 1)
+
+    cm = confusion_matrix(test_labels, result)
+    print(cm)
+    acc = accuracy_score(test_labels, result)
+    print("acc : {}".format(acc))
+
+# %%
+def print_train_info(round = 0, user_index = 0):
+    print("==========")
+    print("round : {} , user : {}".format(round+1, user_index+1))
+    print("==========")
+
+# %%
+def predict_part(round):
+    model = build_model()
+    model.set_weights(server.get_weight())
+
+    test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=2)
+    #print("test acc :{}, test loss :{}".format(test_acc, test_loss))
+
+    '''
+    result = model.predict(test_images)
+    result = np.argmax(result, axis=1)
+    acc = accuracy_score(test_labels, result)
+    '''
+
+    return test_acc, test_loss
+
+
+# %%
+run_federated(10, 2000)
+
+# %%
+server.init_weight()
+
+
 
 # %%
 '''
     mnist의 특정 숫자만 federate 학습 하도록 함 
 '''
-
-
 def learning_federated_number(value=0):
     ti, tl = make_sublist(train_index_list, train_images, train_labels, value)
     m1 = TestModel()
@@ -132,6 +214,9 @@ def learning_federated_number(value=0):
 
 
 # %%
+'''
+    특정 숫자의 데이터만 학습
+'''
 def learning_federated_split_number(value):
     s_train_image, s_train_label = make_split_train_data_by_number(value)
     model = TestModel()
@@ -154,7 +239,6 @@ def evaluate_number(value=-1):
     분류된 index image 리스트에서 (train_index_list) 특정 index에서 size갯수만큼 랜덤하게 뽑아 
     분할된 이미지 리스트를 만듦, sklearn의 mnist_test_split()과 유사한 기능  
 '''
-
 
 def make_split_train_data_by_number(index_number, size=600):
     random_index = np.random.randint(0, high=len(train_index_list[index_number]), size=size)
@@ -194,7 +278,6 @@ def make_split_test_data(size=100):
 def make_graph(acc_list, loss_list):
     plt.plot(acc_list, 'r')
     plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
-
     #plt.plot(loss_list, 'g')
     plt.xlim(xmin=0)
     plt.ylim(ymin=0)
@@ -222,12 +305,12 @@ def run_federate(user_number=1, round=1, batch_size = 10, epoch = 5):
             hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=batch_size, epoch=epoch)
             local_weight_list.append(local_weight)
 
-            ti, tl = make_split_train_data_by_number(9)
-            hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=10, epoch=5)
-            local_weight_list.append(local_weight)
+            #ti, tl = make_split_train_data_by_number(9)
+            #hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=16, epoch=10)
+            #local_weight_list.append(local_weight)
 
-            #local_acc_list.append(hist.history['acc'][-1:])
-            #local_loss_list.append(hist.history['loss'][-1:])
+            local_acc_list.append(hist.history['accuracy'][-1:])
+            local_loss_list.append(hist.history['loss'][-1:])
             local_weight_list.append(local_weight)
 
         server.update_weight2(local_weight_list)
@@ -252,8 +335,15 @@ def run_federate(user_number=1, round=1, batch_size = 10, epoch = 5):
 '''
 def evaluate_federated_number(value=-1):
     m1 = TestModel()
-    s_image, s_label = make_split_train_data()
-    m1.set(s_image, s_label, weights=server.get_weight2())
+    #s_image, s_label = make_split_train_data()
+    m1.set_global_weight(server.get_weight2())
+    result = m1.local_evaluate(test_images, test_labels)
+
+    print(result)
+
+    return result
+
+    '''
     if value == -1:
         # s_test_image, s_test_label = make_split_test_data()
         # m1.local_evaluate(s_test_image, s_test_label)
@@ -263,11 +353,12 @@ def evaluate_federated_number(value=-1):
         result = m1.local_evaluate(ti, tl)
 
     return result
+    '''
 
 
 # %%
 start_time = time.time()
-run_federate(user_number=10, round = 200, batch_size=10, epoch=20 )
+run_federate(user_number=3, round = 2, batch_size=16, epoch=5)
 print("time : {}".format(time.time()-start_time))
 
 
@@ -279,3 +370,5 @@ print("time : {}".format(time.time()-start_time))
 
 # %%
 #server.clear_weight()
+
+# %%
