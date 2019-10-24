@@ -1,12 +1,16 @@
 # %%
+import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn import metrics
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 import matplotlib.ticker as mticker
 import time
 import tensorflow as tf
 from tensorflow import keras
 import Base.BaseServer as Server
+import pydot
+import graphviz
 # %%
 server = Server.BaseServer.instance()
 
@@ -21,7 +25,12 @@ np.random.seed(42)
 # %%
 mnist = tf.keras.datasets.mnist
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
-train_images, test_images = train_images / 255.0, test_images / 255.0
+train_images, test_images = train_images / 255, test_images / 255
+
+#   cnn인 경우 reshape 필요
+train_images = train_images.reshape((-1, 28, 28, 1))
+test_images = test_images.reshape((-1,  28, 28, 1))
+input_shape = ((-1, 28, 28, 1))
 
 # %%    해당 이미지의 labels 별로 구분하여 리스트에 저장
 print("train image :", train_images.shape)
@@ -102,36 +111,76 @@ def show(i):
 
 # %%
 def build_model():
+    '''
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Flatten(input_shape=(28, 28)),
-        tf.keras.layers.Dense(10, activation='relu'),
-        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+       tf.keras.layers.Flatten(input_shape=(28, 28)),
+       tf.keras.layers.Dense(128, activation='relu'),
+       tf.keras.layers.Dense(10, activation=tf.nn.softmax)
     ])
+    '''
 
-    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.1),
+    model = tf.keras.models.Sequential([
+       tf.keras.layers.Conv2D(32, kernel_size=(3,3), activation='relu', input_shape=(28, 28, 1)),
+       tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+       tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
+       tf.keras.layers.Dropout(0.25),
+       tf.keras.layers.Flatten(),
+       tf.keras.layers.Dense(128, activation='relu'),
+       tf.keras.layers.Dropout(0.5),
+       tf.keras.layers.Dense(10, activation='softmax')
+        ])
+
+    model.compile(optimizer=tf.keras.optimizers.SGD(),
                        loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                        metrics=['accuracy'])
 
     return model
 
 # %%
+keras.utils.plot_model(build_model(), "model.png", show_shapes = True)
+
+# %%
+
 def train():
     model = build_model()
-    result = model.fit(train_images, train_labels, epochs=1)
+    result = model.fit(train_images, train_labels, batch_size=64, epochs=20)
 
-    return result
+    score = model.evaluate(test_images, test_labels, verbose=2)
+    print("test acc :{}, test loss :{}".format(score[1], score[0]))
+    return model
+
+start_time = time.time()
+result = train()
+print("time : {}".format(time.time()-start_time))
+
+# %%
+y_pred = result.predict(test_images).argmax(axis=1)
+#y_actual = np.asarray(test_labels.argmax(axis=1)).reshape(len(test_labels))
+#print(metrics.classification_report(y_actual, y_pred))
+
+# %%
+print("None : ", metrics.f1_score(test_labels, y_pred, average=None))
+print("micro : ", metrics.f1_score(test_labels, y_pred, average='micro'))
+print("macro : ", metrics.f1_score(test_labels, y_pred, average='macro'))
+print("weighted : ", metrics.f1_score(test_labels, y_pred, average='weighted'))
+#print(metrics.f1_score(test_labels, y_pred, average='samples'))
+
 
 # %%
 round_result_acc = []
 round_result_loss = []
-def run_federated(user_number = 1, round = 1, batch_size = 16, epochs = 10):
+round_result_time = []
+total_time = []
+def run_federated(user_number = 1, round = 1, batch_size = 5, epochs = 10):
     print("start run federated")
     acc_list = []
     loss_list = []
-    #round_result_list = []
+    round_result_list = []
 
     for i in range(round):
+        s_time = time.time()
         local_weight_list = []
+
         for u in range(user_number):
             model = build_model()
             print_train_info(i, u)
@@ -140,20 +189,23 @@ def run_federated(user_number = 1, round = 1, batch_size = 16, epochs = 10):
             if server_weight is not None:
                 model.set_weights(server_weight)
 
-            td, tl = make_split_train_data_by_number(0, size= 1000) #   특정 숫자의 데이터만 선택하여 subset 만듦
+            td, tl = make_split_train_data_by_number(u, size= 1000)
             model.fit(td, tl, batch_size=batch_size, epochs=epochs, verbose=0)
             local_weight_list.append(model.get_weights())
 
         server.update_weight(local_weight_list)
 
-        if i % 1 == 0 :
-            acc, loss = predict_part(i)
-            round_result_acc.append(acc)
-            round_result_loss.append(loss)
+
+        acc, loss = predict_part(i)
+        round_result_acc.append(acc)
+        round_result_loss.append(loss)
+        round_result_time.append((time.time()-s_time))
+        total_time.append((time.time()- start_time))
 
 
     #print("acc : {} , loss : {}".format(round_result_acc, round_result_loss))
     make_graph(round_result_acc, round_result_loss)
+    make_graph(round_result_time, total_time)
     #predict_federated()
 
 # %%
@@ -195,43 +247,54 @@ def predict_part(round):
 
 
 # %%
-run_federated(10, 2000)
+start_time = time.time()
+run_federated(5, 5, epochs=5, batch_size=10)
+print("total time : {}".format(time.time()-start_time))
+
+# %%
+model = build_model()
+model.set_weights(server.get_weight())
+
+y_pred = result.predict(test_images).argmax(axis=1)
+#y_actual = np.asarray(test_labels.argmax(axis=1)).reshape(len(test_labels))
+#print(metrics.classification_report(y_actual, y_pred))
+
+# %%
+print("None : ", metrics.f1_score(test_labels, y_pred, average=None))
+print("micro : ", metrics.f1_score(test_labels, y_pred, average='micro'))
+print("macro : ", metrics.f1_score(test_labels, y_pred, average='macro'))
+print("weighted : ", metrics.f1_score(test_labels, y_pred, average='weighted'))
+#print(metrics.f1_score(test_labels, y_pred, average='samples'))
 
 # %%
 server.init_weight()
 
+# %%
+with h5py.File("mnist_test/model/fl-nn-20191020.h5", 'w') as hf:
+    for n, d in enumerate(server.get_weight()):
+        hf.create_dataset(name = 'dataset{:d}'.format(n), data=d)
 
 
 # %%
-'''
-    mnist의 특정 숫자만 federate 학습 하도록 함 
-'''
-def learning_federated_number(value=0):
-    ti, tl = make_sublist(train_index_list, train_images, train_labels, value)
-    m1 = TestModel()
-    m1.set(ti, tl, server.get_local_weight())
-    server.update_value(m1.get_weight())
+def weight_save(name):
+    model.save_weights(name)
 
+model = build_model()
+model.set_weights(server.get_weight())
+
+weight_save("mnist_test/model/fl-cnn-20191021.h5")
+# %%
+def load_weight(name):
+    model = build_model()
+    model.load_weights(name)
+    return model
 
 # %%
-'''
-    특정 숫자의 데이터만 학습
-'''
-def learning_federated_split_number(value):
-    s_train_image, s_train_label = make_split_train_data_by_number(value)
-    model = TestModel()
-    model.set(s_train_image, s_train_label, server.get_local_weight(), batch_size=10)
-    server.update_value(model.get_weight())
+model = load_weight("mnist_test/model/fl-cnn-20191021.h5")
 
 # %%
-def evaluate_number(value=-1):
-    m1 = TestModel()
-    m1.set(train_images, train_labels, batch_size=128, epoch=12)
-    if value == -1:
-        m1.local_evaluate(test_images, test_labels)
-    else:
-        ti, tl = make_sublist(test_index_list, test_images, test_labels, value)
-        m1.local_evaluate(ti, tl)
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print("acc : ", test_acc, test_loss)
 
 
 # %%
@@ -274,101 +337,25 @@ def make_split_test_data(size=100):
     return np.array(s_test_image), np.array(s_label_label)
 
 # %%
-
-def make_graph(acc_list, loss_list):
+def make_graph(acc_list=[], loss_list=[], round_result_time=[], total_time=[]):
     plt.plot(acc_list, 'r')
-    plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
-    #plt.plot(loss_list, 'g')
+    #plt.plot(loss_list, '')
+    plt.plot(round_result_time, 'g')
+    plt.plot(total_time, 'b')
+    #plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+
+    plt.legend()
     plt.xlim(xmin=0)
     plt.ylim(ymin=0)
 
     plt.show()
 
+# %%
+make_graph(acc_list=round_result_acc, loss_list=round_result_loss)
+make_graph(round_result_time=round_result_time, total_time=total_time)
 
 # %%
-def run_federate(user_number=1, round=1, batch_size = 10, epoch = 5):
-    print("start federate")
-    acc_list = []
-    acc_list.append(0)
-    loss_list = []
-    local_model = TestModel()
-
-    for i in range(round):
-        server_weight = server.get_weight2()
-        print_round(i)
-        local_weight_list = []  # local weight list
-        local_acc_list = []        # fit 결과의 acc 저장, 각 라운드의 마지막 유저의 acc 만 저장
-        local_loss_list = []        # fit 결과의 acc 저장, 각 라운드의 마지막 유저의 acc 만 저장
-        for u in range(user_number):
-            #ti, tl = make_split_train_data()
-            ti, tl = make_split_train_data_by_number(0)
-            hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=batch_size, epoch=epoch)
-            local_weight_list.append(local_weight)
-
-            #ti, tl = make_split_train_data_by_number(9)
-            #hist, local_weight = local_model.set(ti, tl, server_weight, batch_size=16, epoch=10)
-            #local_weight_list.append(local_weight)
-
-            local_acc_list.append(hist.history['accuracy'][-1:])
-            local_loss_list.append(hist.history['loss'][-1:])
-            local_weight_list.append(local_weight)
-
-        server.update_weight2(local_weight_list)
-
-        result = evaluate_federated_number(-1)
-        acc_list.append(result[1] * 100)
-        # 매 라운드 종료 시 evaluate 시행
-        #acc_list.append(local_acc_list[-1:])
-        #loss_list.append(local_loss_list[-1:])
-
-    acc_list = np.array(acc_list)
-    #acc_list = acc_list.ravel()
-    #loss_list = np.array(loss_list)
-    #loss_list = loss_list.ravel()
-
-    make_graph(acc_list, loss_list)
+weight = server.get_weight()
+print(weight.shape)
 
 
-# %%
-'''
-    서버에서 fed_weight를 받아와 특정 숫자로 로컬 테스트 진행
-'''
-def evaluate_federated_number(value=-1):
-    m1 = TestModel()
-    #s_image, s_label = make_split_train_data()
-    m1.set_global_weight(server.get_weight2())
-    result = m1.local_evaluate(test_images, test_labels)
-
-    print(result)
-
-    return result
-
-    '''
-    if value == -1:
-        # s_test_image, s_test_label = make_split_test_data()
-        # m1.local_evaluate(s_test_image, s_test_label)
-        result = m1.local_evaluate(test_images, test_labels)
-    else:
-        ti, tl = make_sublist(test_index_list, test_images, test_labels, value)
-        result = m1.local_evaluate(ti, tl)
-
-    return result
-    '''
-
-
-# %%
-start_time = time.time()
-run_federate(user_number=3, round = 2, batch_size=16, epoch=5)
-print("time : {}".format(time.time()-start_time))
-
-
-# %%
-#evaluate_federated_number()
-
-# %%
-#evaluate_number()
-
-# %%
-#server.clear_weight()
-
-# %%

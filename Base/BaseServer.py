@@ -1,10 +1,5 @@
 import copy
-
 import numpy as np
-
-import utils.GeometricMedian as gm
-from statistics import harmonic_mean
-
 class BaseServer:
     __instance = None
 
@@ -24,8 +19,10 @@ class BaseServer:
     def __init__(self):
         print("Base server init")
 
+    temp_weight = []
     def update_weight(self, local_weight_list):
         local_avgs = copy.deepcopy(local_weight_list)
+        self.temp_weight = local_avgs
         self.count += 1
 
         if self.server_weight_avg is None:
@@ -33,7 +30,8 @@ class BaseServer:
         else:
             ''' average '''
             self.cal_average(local_avgs)
-            self.cal_harmonic_mean(local_avgs)
+            self.temp(local_avgs)
+            #self.cal_harmonic_mean(local_avgs)
 
         return self.server_weight_avg
 
@@ -60,3 +58,14 @@ class BaseServer:
 
         for i in range(len(local_weights)):
             self.temp_local_weight = local_weights[i]
+
+    def temp(self, local_weights):
+        print("temp")
+        sorted(local_weights)
+        print("sorted")
+
+
+
+
+
+
