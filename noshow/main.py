@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 import tensorflow as tf
+from matplotlib.ticker import MultipleLocator
 
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -95,7 +96,7 @@ def one_hot_encode(data):
 
 
 # %%
-df_train = pd.read_csv('noshow/KaggleV2-May-2016.csv')
+df_train = pd.read_csv('noshow/KaggleV2-May-2016-balanced.csv')
 
 processed_data = processing_data(df_train)
 print(processed_data.head())
@@ -201,7 +202,7 @@ def make_time_graph(round_result_time, total_time):
 def build_model():
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=112),
+        tf.keras.layers.Dense(units=64, activation=tf.nn.relu, input_dim=111),
         tf.keras.layers.Dense(units=64, activation=tf.nn.relu),
         tf.keras.layers.Dense(1, activation='sigmoid')
     ])
@@ -213,15 +214,15 @@ def build_model():
 
     return model
 
-model = build_model()
+normal_model = build_model()
 
 # %%
 start_time = time.time()
-model.fit(X_train, y_train, batch_size=64, epochs=20)
+normal_model.fit(X_train, y_train, batch_size=64, epochs=20)
 print("total time : {}".format(time.time()-start_time))
 
 # %%
-make_acc_graph(model.history.history['accuracy'])
+make_acc_graph(normal_model.history.history['accuracy'])
 #make_time_graph(round_result_time, total_time)
 # %%    nn
 print(len(y_val))
@@ -371,3 +372,81 @@ weight_save("noshow/model/fl-balance-20191019.h5")
 def weight_load(name):
     loaded_model = model.load_weights(name)
     return loaded_model
+
+# %%
+def make_graph(acc_list=[], loss_list=[], round_result_time=[], total_time=[]):
+    plt.plot(acc_list, 'r', label="CNN")
+    # plt.plot(loss_list, '')
+    plt.plot(round_result_time, 'b', label="FL-CNN")
+    #plt.plot(total_time, 'b')
+    #plt.gca().xaxis.set_major_locator(MultipleLocator(1))
+
+    plt.tick_params(axis="x", bottom=True, top=True, labelbottom=True, labeltop=True)
+
+    plt.title("Epochs for CNN", fontsize=10)
+    plt.xlabel("Rounds for FL", fontsize=10)
+
+    plt.legend()
+    plt.xlim(xmin=0)
+    #plt.ylim(ymin=0)
+    plt.show()
+
+# %%
+fl_result =[
+0.804	,
+0.800	,
+0.820	,
+0.827	,
+0.841	,
+0.849	,
+0.853	,
+0.849	,
+0.851	,
+0.863	,
+0.871	,
+0.874	,
+0.870	,
+0.872	,
+0.860	,
+0.859	,
+0.876	,
+0.876	,
+0.875	,
+0.877	,
+0.876	,
+0.876	,
+0.877	,
+0.876	,
+0.877	,
+0.877	,
+0.877	,
+0.876	,
+0.878	,
+0.879	,
+0.876	,
+0.877	,
+0.873	,
+0.877	,
+0.877	,
+0.872	,
+0.877	,
+0.877	,
+0.874	,
+0.877	,
+0.876	,
+0.877	,
+0.877	,
+0.877	,
+0.878	,
+0.877	,
+0.877	,
+0.877	,
+0.877	,
+0.877	,
+]
+
+# %%
+make_graph(acc_list=normal_model.history.history['accuracy'], round_result_time=fl_result)
+
+# %%
+print(len(normal_model.history.history['accuracy']), len(fl_result))
