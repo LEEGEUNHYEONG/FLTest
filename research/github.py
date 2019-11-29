@@ -7,7 +7,7 @@ from research.gitdata import GitData
 Github search
 '''
 result = []
-for i in range(1, 4):
+for i in range(1, 5):
     url = "https://api.github.com/search/repositories?q=federated+learning&per_page=100&page=" + str(i)
     json_data = requests.get(url)
     data = json_data.json()
@@ -47,10 +47,11 @@ for i in result:
     git_result.append(gitdata)
 
 print(git_result)
+print("size : " + git_result)
 
 # %%
 import pandas as pd
 
 df = pd.DataFrame([vars(s) for s in git_result])
-df.to_csv("research/research_git.csv")
+#df.to_csv("research/research_git2.csv")
 

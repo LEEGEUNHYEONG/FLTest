@@ -4,6 +4,9 @@ import time
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+
 import tensorflow as tf
 from sklearn import metrics
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_recall_fscore_support, \
@@ -15,11 +18,10 @@ import Base.BaseServer as Server
 # %%
 server = Server.BaseServer.instance()
 
-'''
 #   그래픽카드 사용 확인 
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
-'''
+
 
 np.random.seed(42)
 
@@ -29,9 +31,9 @@ mnist = tf.keras.datasets.mnist
 train_images, test_images = train_images / 255, test_images / 255
 
 #   cnn인 경우 reshape 필요
-#train_images = train_images.reshape((-1, 28, 28, 1))
-#test_images = test_images.reshape((-1, 28, 28, 1))
-#input_shape = ((-1, 28, 28, 1))
+train_images = train_images.reshape((-1, 28, 28, 1))
+test_images = test_images.reshape((-1, 28, 28, 1))
+input_shape = ((-1, 28, 28, 1))
 
 # %%    해당 이미지의 labels 별로 구분하여 리스트에 저장
 print("train image :", train_images.shape)
@@ -114,14 +116,16 @@ def show(i):
 # %%
 def build_model():
 
+    '''
     model = tf.keras.models.Sequential([
        tf.keras.layers.Flatten(input_shape=(28, 28)),
        tf.keras.layers.Dense(128, activation='relu'),
        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
     ])
-
-
     '''
+
+
+
     model = tf.keras.models.Sequential([
         tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)),
         tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -132,7 +136,7 @@ def build_model():
         tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(10, activation='softmax')
     ])
-    '''
+
 
     model.compile(optimizer=tf.keras.optimizers.SGD(),
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
@@ -169,13 +173,13 @@ test_loss, test_acc = normal_nn.evaluate(test_images, test_labels)
 print("y_pred : " , test_acc)
 
 # %%
-test_loss, test_acc = normal_cnn.evaluate(test_images, test_labels)
+test_loss, test_acc = normal_nn.evaluate(test_images, test_labels)
 
 print("y_pred : " , test_acc)
 
 
 # %%
-print(normal_cnn.history.history["accuracy"])
+print(normal_nn.history.history["accuracy"])
 
 # %%
 y_pred = np.argmax(y_pred, axis=-1)
@@ -294,7 +298,7 @@ def predict_part(round):
 
 # %%
 start_time = time.time()
-run_federated(10, 50, epochs=5, batch_size=10)
+run_federated(10, 10, epochs=5, batch_size=10)
 print("total time : {}".format(time.time() - start_time))
 
 # %%
