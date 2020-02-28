@@ -5,13 +5,20 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+
+from mnist_test.ELogger import ELogger
+import time
+
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 import tensorflow as tf
+
 from sklearn import metrics
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_recall_fscore_support, \
     classification_report
 from tensorflow import keras
+from tensorflow.keras.callbacks import CSVLogger
+
 
 import Base.BaseServer as Server
 
@@ -31,9 +38,11 @@ mnist = tf.keras.datasets.mnist
 train_images, test_images = train_images / 255, test_images / 255
 
 #   cnn인 경우 reshape 필요
+'''
 train_images = train_images.reshape((-1, 28, 28, 1))
 test_images = test_images.reshape((-1, 28, 28, 1))
 input_shape = ((-1, 28, 28, 1))
+'''
 
 # %%    해당 이미지의 labels 별로 구분하여 리스트에 저장
 print("train image :", train_images.shape)
@@ -109,23 +118,18 @@ def make_sublist(index_list, images_list, labels_list, target_index):
 def show(i):
     plt.figure(figsize=(5, 5))
     image = i
-    plt.imshow(image, cmap='Greys')
+    plt.imshow(image[:,:,0], cmap='Greys')
     plt.show()
 
 
 # %%
 def build_model():
-
-    '''
     model = tf.keras.models.Sequential([
        tf.keras.layers.Flatten(input_shape=(28, 28)),
        tf.keras.layers.Dense(128, activation='relu'),
        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
     ])
     '''
-
-
-
     model = tf.keras.models.Sequential([
         tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)),
         tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -136,7 +140,7 @@ def build_model():
         tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(10, activation='softmax')
     ])
-
+    '''
 
     model.compile(optimizer=tf.keras.optimizers.SGD(),
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
@@ -220,10 +224,13 @@ round_result_loss = []
 round_result_time = []
 total_time = []
 
+#csv_logger = CSVLogger('log.csv', append=True)
+#csv_logger = ELogger('test.csv')
+
+
 
 def run_federated(user_number=1, round=1, batch_size=5, epochs=10):
     print("start run federated")
-
     for i in range(round):
         s_time = time.time()
         local_weight_list = []
@@ -236,8 +243,28 @@ def run_federated(user_number=1, round=1, batch_size=5, epochs=10):
             if server_weight is not None:
                 model.set_weights(server_weight)
 
-            td, tl = make_split_train_data_by_number(u, size=1000)
-            model.fit(td, tl, batch_size=batch_size, epochs=epochs, verbose=0)
+            if u == 0:
+                td, tl = make_split_train_data_by_number(0, 90)
+            elif u == 1:
+                td, tl = make_split_train_data_by_number(1, 80)
+            elif u == 2:
+                td, tl = make_split_train_data_by_number(2, 70)
+            elif u == 3:
+                td, tl = make_split_train_data_by_number(3, 60)
+            elif u == 4:
+                td, tl = make_split_train_data_by_number(4, 50)
+            elif u == 5:
+                td, tl = make_split_train_data_by_number(5, 40)
+            elif u == 6:
+                td, tl = make_split_train_data_by_number(6, 30)
+            elif u == 7:
+                td, tl = make_split_train_data_by_number(7, 20)
+            elif u == 8:
+                td, tl = make_split_train_data_by_number(8, 10)
+            else:
+                td, tl = make_split_train_data_by_number(9, 5)
+
+            model.fit(td, tl, batch_size=batch_size, epochs=epochs, verbose=1)
             local_weight = model.get_weights()
 
             local_weight_list.append(local_weight)
@@ -285,6 +312,16 @@ def predict_part(round):
     model.set_weights(server.get_weight())
 
     test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=2)
+
+    y_pred = model.predict(test_images)
+    y_pred = np.argmax(y_pred, axis=1)
+    cm = confusion_matrix(test_labels, y_pred)
+    print("confusion matrix : ", cm)
+    acc = accuracy_score(test_labels, y_pred)
+    print("acc : {}".format(acc))
+
+    #save_result(model, round, test_acc, test_loss)
+
     # print("test acc :{}, test loss :{}".format(test_acc, test_loss))
 
     '''
@@ -297,8 +334,34 @@ def predict_part(round):
 
 
 # %%
+def save_result(model, round, acc, loss):
+    create_folder()
+
+    if acc >= 0 :
+        file_time = time.strftime("%Y%m%d-%H%M%S")
+        weight_save(model, "result/model/{}-{}-{:.4f}.h5".format(file_time, round, acc))
+
+    save_csv('result', round, acc, loss)
+
+def create_folder():
+    create_directory("result")
+    create_directory("result/model")
+
+
+# %%
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+#  %%
+def save_csv(filename, round = 0, acc = 0.0, loss = 0.0):
+    with open("result/{}.csv".format(filename), "a+") as f:
+        f.write("{}, {}, {}\n".format(round, acc, loss))
+
+
+# %%
 start_time = time.time()
-run_federated(10, 10, epochs=5, batch_size=10)
+run_federated(10, 100, epochs=5, batch_size=5)
 print("total time : {}".format(time.time() - start_time))
 
 # %%
@@ -343,10 +406,10 @@ with h5py.File("mnist_test/model/fl-nn-20191020.h5", 'w') as hf:
 
 
 # %%
-def weight_save(name):
-    model.save_weights(name)
+def weight_save(result_model, name):
+    result_model.save_weights(name)
 
-
+# %%
 model = build_model()
 model.set_weights(server.get_weight())
 
@@ -372,7 +435,6 @@ print("acc : ", test_acc, test_loss)
     분류된 index image 리스트에서 (train_index_list) 특정 index에서 size갯수만큼 랜덤하게 뽑아 
     분할된 이미지 리스트를 만듦, sklearn의 mnist_test_split()과 유사한 기능  
 '''
-
 
 def make_split_train_data_by_number(index_number, size=600):
     random_index = np.random.randint(0, high=len(train_index_list[index_number]), size=size)
