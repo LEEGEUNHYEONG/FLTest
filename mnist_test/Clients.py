@@ -9,7 +9,7 @@ import os
 from mnist_test.ELogger import ELogger
 import time
 
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+#os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 import tensorflow as tf
 
@@ -19,8 +19,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precisio
 from tensorflow import keras
 from tensorflow.keras.callbacks import CSVLogger
 
-
 import Base.BaseServer as Server
+np.random.seed(42)
 
 # %%
 server = Server.BaseServer.instance()
@@ -28,9 +28,6 @@ server = Server.BaseServer.instance()
 #   그래픽카드 사용 확인 
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
-
-
-np.random.seed(42)
 
 # %%
 mnist = tf.keras.datasets.mnist
@@ -150,11 +147,11 @@ def build_model():
 
 
 # %%
-keras.utils.plot_model(build_model(), "model.png", show_shapes=True)
+#keras.utils.plot_model(build_model(), "model.png", show_shapes=True)
 
 
 # %%
-
+'''
 def train():
     model = build_model()
     result = model.fit(train_images, train_labels, batch_size=64, epochs=250)
@@ -167,7 +164,6 @@ def train():
 
 start_time = time.time()
 normal_nn = train()
-#normal_cnn = train()
 print("time : {}".format(time.time() - start_time))
 
 # %%
@@ -216,71 +212,21 @@ print("micro : ", metrics.f1_score(test_labels, y_pred, average='micro'))
 print("macro : ", metrics.f1_score(test_labels, y_pred, average='macro'))
 print("weighted : ", metrics.f1_score(test_labels, y_pred, average='weighted'))
 # print(metrics.f1_score(test_labels, y_pred, average='samples'))
-
+'''
 
 # %%
-round_result_acc = []
-round_result_loss = []
-round_result_time = []
-total_time = []
+def split_data():
+    temp_train_images = []
+    temp_train_labels = []
+    for i in range(10):
+        #temp_train, temp_labels = make_split_train_data(np.random.randint(1, 600)) # FL 2
+        temp_train, temp_labels = make_split_train_data(600)  # FL 1
+        temp_train_images.append(temp_train)
+        temp_train_labels.append(temp_labels)
+        print(i, " size : ", len(temp_train))
 
-#csv_logger = CSVLogger('log.csv', append=True)
-#csv_logger = ELogger('test.csv')
+    return np.array(temp_train_images), np.array(temp_train_labels)
 
-
-
-def run_federated(user_number=1, round=1, batch_size=5, epochs=10):
-    print("start run federated")
-    for i in range(round):
-        s_time = time.time()
-        local_weight_list = []
-
-        for u in range(user_number):
-            model = build_model()
-            print_train_info(i, u)
-            server_weight = server.get_weight()
-
-            if server_weight is not None:
-                model.set_weights(server_weight)
-
-            if u == 0:
-                td, tl = make_split_train_data_by_number(0, 90)
-            elif u == 1:
-                td, tl = make_split_train_data_by_number(1, 80)
-            elif u == 2:
-                td, tl = make_split_train_data_by_number(2, 70)
-            elif u == 3:
-                td, tl = make_split_train_data_by_number(3, 60)
-            elif u == 4:
-                td, tl = make_split_train_data_by_number(4, 50)
-            elif u == 5:
-                td, tl = make_split_train_data_by_number(5, 40)
-            elif u == 6:
-                td, tl = make_split_train_data_by_number(6, 30)
-            elif u == 7:
-                td, tl = make_split_train_data_by_number(7, 20)
-            elif u == 8:
-                td, tl = make_split_train_data_by_number(8, 10)
-            else:
-                td, tl = make_split_train_data_by_number(9, 5)
-
-            model.fit(td, tl, batch_size=batch_size, epochs=epochs, verbose=1)
-            local_weight = model.get_weights()
-
-            local_weight_list.append(local_weight)
-
-        server.update_weight(local_weight_list)
-
-        acc, loss = predict_part(i)
-        round_result_acc.append(acc)
-        round_result_loss.append(loss)
-        round_result_time.append((time.time() - s_time))
-        total_time.append((time.time() - start_time))
-
-    make_graph(round_result_acc, round_result_loss)
-    make_graph(round_result_time, total_time)
-
-    print("end federated")
 
 
 # %%
@@ -320,7 +266,7 @@ def predict_part(round):
     acc = accuracy_score(test_labels, y_pred)
     print("acc : {}".format(acc))
 
-    #save_result(model, round, test_acc, test_loss)
+    save_result(model, round, test_acc, test_loss)
 
     # print("test acc :{}, test loss :{}".format(test_acc, test_loss))
 
@@ -333,19 +279,21 @@ def predict_part(round):
     return test_acc, test_loss
 
 
+
 # %%
 def save_result(model, round, acc, loss):
-    create_folder()
+    folder_name = "result_fl1"
+    create_folder(folder_name)
 
     if acc >= 0 :
         file_time = time.strftime("%Y%m%d-%H%M%S")
-        weight_save(model, "result/model/{}-{}-{:.4f}.h5".format(file_time, round, acc))
+        weight_save(model, "{}/model/{}-{}-{:.4f}.h5".format(folder_name, file_time, round, acc))
 
-    save_csv('result', round, acc, loss)
+    save_csv(folder_name, 'result', round, acc, loss)
 
-def create_folder():
-    create_directory("result")
-    create_directory("result/model")
+def create_folder(folder_name):
+    create_directory("{}".format(folder_name))
+    create_directory("{}/model".format(folder_name))
 
 
 # %%
@@ -354,66 +302,14 @@ def create_directory(directory):
         os.makedirs(directory)
 
 #  %%
-def save_csv(filename, round = 0, acc = 0.0, loss = 0.0):
-    with open("result/{}.csv".format(filename), "a+") as f:
+def save_csv(folder_name, filename, round = 0, acc = 0.0, loss = 0.0):
+    with open("{}/{}.csv".format(folder_name, filename), "a+") as f:
         f.write("{}, {}, {}\n".format(round, acc, loss))
-
-
-# %%
-start_time = time.time()
-run_federated(10, 100, epochs=5, batch_size=5)
-print("total time : {}".format(time.time() - start_time))
-
-# %%
-model = build_model()
-model.set_weights(server.get_weight())
-
-y_pred = result.predict(test_images).argmax(axis=1)
-# y_actual = np.asarray(test_labels.argmax(axis=1)).reshape(len(test_labels))
-# print(metrics.classification_report(y_actual, y_pred))
-
-# %%    잘못된 분류 테스트
-model = build_model()
-model.set_weights(server.get_weight())
-
-t_images, t_labels = make_split_test_data_by_number(5)
-
-y_pred = model.predict(t_images)
-y_pred = np.argmax(y_pred, axis=1)
-print("label : ", t_labels)
-print("predict : " , y_pred)
-cm = confusion_matrix(t_labels, y_pred)
-print(cm)
-acc = accuracy_score(t_labels, y_pred)
-print("acc : {}".format(acc))
-
-
-
-# %%
-print("None : ", metrics.f1_score(test_labels, y_pred, average=None))
-print("micro : ", metrics.f1_score(test_labels, y_pred, average='micro'))
-print("macro : ", metrics.f1_score(test_labels, y_pred, average='macro'))
-print("weighted : ", metrics.f1_score(test_labels, y_pred, average='weighted'))
-# print(metrics.f1_score(test_labels, y_pred, average='samples'))
-
-# %%
-server.init_weight()
-
-# %%
-with h5py.File("mnist_test/model/fl-nn-20191020.h5", 'w') as hf:
-    for n, d in enumerate(server.get_weight()):
-        hf.create_dataset(name='dataset{:d}'.format(n), data=d)
-
 
 # %%
 def weight_save(result_model, name):
     result_model.save_weights(name)
 
-# %%
-model = build_model()
-model.set_weights(server.get_weight())
-
-weight_save("mnist_test/model/fl-cnn-20191021.h5")
 
 
 # %%
@@ -421,14 +317,6 @@ def load_weight(name):
     model = build_model()
     model.load_weights(name)
     return model
-
-
-# %%
-model = load_weight("mnist_test/model/fl-cnn-20191021.h5")
-
-# %%
-test_loss, test_acc = model.evaluate(test_images, test_labels)
-print("acc : ", test_acc, test_loss)
 
 # %%
 '''
@@ -502,25 +390,102 @@ def make_graph(acc_list=[], loss_list=[], round_result_time=[], total_time=[]):
 
     plt.show()
 
+# %%
+round_result_acc = []
+round_result_loss = []
+round_result_time = []
+total_time = []
+
+# fl2_train_images, fl2_train_labels = split_data()
+fl1_train_images, fl1_train_labels = split_data()
+
+def run_federated(user_number=1, round=1, batch_size=5, epochs=10):
+    print("start run federated")
+    for i in range(round):
+        s_time = time.time()
+        local_weight_list = []
+
+        for u in range(user_number):
+            model = build_model()
+            print_train_info(i, u)
+            server_weight = server.get_weight()
+
+            if server_weight is not None:
+                model.set_weights(server_weight)
+
+            '''
+            if u == 0:
+                td, tl = make_split_train_data_by_number(0, 100)
+            elif u == 1:
+                td, tl = make_split_train_data_by_number(1, 200)
+            elif u == 2:
+                td, tl = make_split_train_data_by_number(2, 140)
+            elif u == 3:
+                td, tl = make_split_train_data_by_number(3, 80)
+            elif u == 4:
+                td, tl = make_split_train_data_by_number(4, 50)
+            elif u == 5:
+                td, tl = make_split_train_data_by_number(5, 30)
+            elif u == 6:
+                td, tl = make_split_train_data_by_number(6, 160)
+            elif u == 7:
+                td, tl = make_split_train_data_by_number(7, 120)
+            elif u == 8:
+                td, tl = make_split_train_data_by_number(8, 180)
+            else:
+                td, tl = make_split_train_data_by_number(9, 10)
+            '''
+
+            # model.fit(fl2_train_images[u], fl2_train_labels[u], batch_size=batch_size, epochs=epochs, verbose=1)
+            model.fit(fl1_train_images[u], fl1_train_labels[u], batch_size=batch_size, epochs=epochs, verbose=1)
+            # model.fit(train_images, train_labels, batch_size=batch_size, epochs=epochs, verbose=1)
+            local_weight = model.get_weights()
+
+            local_weight_list.append(local_weight)
+
+        server.update_weight(local_weight_list)
+
+        acc, loss = predict_part(i)
+        round_result_acc.append(acc)
+        round_result_loss.append(loss)
+        round_result_time.append((time.time() - s_time))
+        total_time.append((time.time() - start_time))
+
+    # make_graph(round_result_acc, round_result_loss)
+    # make_graph(round_result_time, total_time)
+
+    print("end federated")
+
 
 # %%
-make_graph(acc_list=round_result_acc, loss_list=round_result_loss)
-make_graph(round_result_time=round_result_time, total_time=total_time)
+start_time = time.time()
+run_federated(10, 500, epochs=5, batch_size=10)
+print("total time : {}".format(time.time() - start_time))
+
 
 # %%
-weight = server.get_weight()
-print(weight.shape)
+result_model = build_model()
+result_model.set_weights(server.get_weight())
+
+
+#save_result(result_model, 500, 0.8901, 0)
 
 # %%
-fl_model = load_weight("mnist_test/model/fl-cnn-20191021.h5")
+load_model = load_weight("result_fl2/model/20200317-155919-491-0.9213.h5")
+result = load_model.predict(test_images)
 
-# %%
-result = fl_model.predict(test_images)
+auroc1 = metrics.roc_auc_score(test_labels, result,multi_class='ovr')
+auroc2 = metrics.roc_auc_score(test_labels, result,multi_class='ovo')
+print("auroc ovr : ", auroc1)
+print("auroc ovo : ", auroc2)
+
 result = np.argmax(result, axis=-1)
 
+f1_micro = f1_score(test_labels, result, average="micro")
+f1_macro = f1_score(test_labels, result, average="macro")
 
-f1 = f1_score(test_labels, result, average="macro")
-print("Test f1 score : %s "% f1)
+print("Test f1 score : %s "% f1_micro)
+print("Test f1 score : %s "% f1_macro)
 
 acc = accuracy_score(test_labels, result)
 print("Test accuracy score : %s "% acc)
@@ -535,102 +500,4 @@ measure3 = classification_report(test_labels, result)
 print("Test measure 3 : \n{}".format(measure3))
 
 # %%
-fl_result_list = 	[
-0.098	,
-0.098	,
-0.156	,
-0.369	,
-0.380	,
-0.473	,
-0.471	,
-0.494	,
-0.518	,
-0.690	,
-0.620	,
-0.614	,
-0.612	,
-0.587	,
-0.686	,
-0.651	,
-0.655	,
-0.604	,
-0.670	,
-0.651	,
-0.702	,
-0.733	,
-0.700	,
-0.668	,
-0.654	,
-0.677	,
-0.743	,
-0.696	,
-0.729	,
-0.751	,
-0.787	,
-0.711	,
-0.731	,
-0.718	,
-0.713	,
-0.702	,
-0.742	,
-0.721	,
-0.715	,
-0.667	,
-0.728	,
-0.765	,
-0.764	,
-0.769	,
-0.804	,
-0.799	,
-0.803	,
-0.797	,
-0.822	,
-0.777	,
-0.789	,
-0.803	,
-0.822	,
-0.784	,
-0.767	,
-0.745	,
-0.785	,
-0.787	,
-0.819	,
-0.840	,
-0.849	,
-0.830	,
-0.829	,
-0.812	,
-0.782	,
-0.820	,
-0.801	,
-0.817	,
-0.851	,
-0.816	,
-0.827	,
-0.760	,
-0.783	,
-0.740	,
-0.833	,
-0.782	,
-0.800	,
-0.735	,
-0.800	,
-0.789	,
-0.786	,
-0.813	,
-0.849	,
-0.829	,
-0.862	,
-0.843	,
-0.822	,
-0.781	,
-0.766	,
-0.767	,
-0.863	]
-
-
-# %%
-
-make_graph(acc_list= normal_cnn.history.history["accuracy"], round_result_time=fl_result_list)
-
-
+server.init_weight()
